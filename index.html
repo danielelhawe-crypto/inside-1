@@ -121,7 +121,7 @@
 <div id="msgPage">
   <canvas id="bearCanvas" width="340" height="310"></canvas>
   <div class="msg-box">
-    <p class="msg-text" id="msgText">اكتب رسالتك هنا ✨</p>
+    <p class="msg-text" id="msgText">هاتي بوسه 🥰</p>
   </div>
   <button class="back-btn" id="backBtn">← ارجع للقلب</button>
 </div>
@@ -413,8 +413,8 @@ backBtn.addEventListener('click',()=>{
 document.getElementById('heartCanvas').addEventListener('click',openMsg);
 
 function spawnHearts(){
-  const em=['💖','💗','💝','💕','♥','💌'];
-  for(let i=0;i<14;i++){
+  const em=['💖','💝','💌'];
+  for(let i=0;i<30;i++){
     const h=document.createElement('div'); h.className='fh';
     h.textContent=em[Math.floor(Math.random()*em.length)];
     h.style.cssText=`left:${5+Math.random()*90}%;bottom:-30px;
