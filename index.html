@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💖 رسالة الدبدوب</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: radial-gradient(ellipse at 50% 60%, #1a0010 0%, #0a0005 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Tajawal', sans-serif;
+    overflow: hidden;
+  }
+  canvas { display: block; cursor: pointer; }
+
+  /* ── HEART PAGE ── */
+  #heartPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    transition: opacity .5s, transform .5s;
+  }
+  .hint {
+    color: rgba(255,117,143,.65);
+    font-size: 15px;
+    letter-spacing: 2px;
+    animation: fadeHint 2s ease 1.2s both;
+  }
+  @keyframes fadeHint {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  #heartCanvas { filter: drop-shadow(0 0 30px #c9184a99); }
+
+  /* ── MESSAGE PAGE ── */
+  #msgPage {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    transform: scale(.94);
+    transition: opacity .7s, transform .7s;
+  }
+  #msgPage.show { opacity:1; transform:scale(1); }
+  #bearCanvas { filter: drop-shadow(0 12px 36px rgba(201,24,74,.45)); }
+
+  .msg-box {
+    background: #c9184a;
+    border-radius: 22px;
+    padding: 34px 44px;
+    max-width: 500px;
+    width: 90vw;
+    box-shadow: 0 0 0 2px rgba(255,117,143,.25),
+                0 20px 60px rgba(201,24,74,.55),
+                0 0 100px rgba(201,24,74,.18);
+    position: relative;
+    overflow: hidden;
+    animation: boxIn .8s cubic-bezier(.175,.885,.32,1.275) .35s both;
+  }
+  @keyframes boxIn {
+    from { opacity:0; transform:translateY(36px) scale(.95); }
+    to   { opacity:1; transform:translateY(0) scale(1); }
+  }
+  .msg-box::before, .msg-box::after {
+    content:'♥'; position:absolute; font-size:70px; opacity:.07; pointer-events:none;
+  }
+  .msg-box::before { top:-10px; left:-8px; transform:rotate(-20deg); }
+  .msg-box::after  { bottom:-8px; right:8px; transform:rotate(14deg); }
+  .msg-text {
+    color:#fff; font-size:19px; line-height:1.95; text-align:center;
+    font-weight:500; position:relative; z-index:1; text-shadow:0 1px 3px rgba(0,0,0,.2);
+  }
+
+  .back-btn {
+    background:transparent; border:2px solid rgba(255,117,143,.35);
+    color:rgba(255,117,143,.7); padding:10px 30px; border-radius:50px;
+    font-family:'Tajawal',sans-serif; font-size:14px; cursor:pointer;
+    transition:all .3s; letter-spacing:1px;
+  }
+  .back-btn:hover { border-color:#ff758f; color:#ff758f; background:rgba(255,117,143,.08); }
+
+  .fh {
+    position:fixed; pointer-events:none; opacity:0;
+    animation: fhUp 4s ease-in-out forwards; font-size:20px;
+  }
+  @keyframes fhUp {
+    0%{opacity:0;transform:translateY(0) rotate(0deg);}
+    15%{opacity:.8;}
+    100%{opacity:0;transform:translateY(-110vh) rotate(360deg);}
+  }
+  .pt {
+    position:fixed; border-radius:50%; opacity:0; pointer-events:none;
+    animation: ptRise var(--d,6s) ease-in-out var(--dl,0s) infinite;
+  }
+  @keyframes ptRise {
+    0%{opacity:0;transform:translateY(0) scale(0);}
+    20%{opacity:.7;transform:translateY(-25px) scale(1);}
+    100%{opacity:0;transform:translateY(-180px) scale(.2);}
+  }
+</style>
+</head>
+<body>
+
+<div id="pts"></div>
+
+<!-- LANDING -->
+<div id="heartPage">
+  <canvas id="heartCanvas" width="220" height="200"></canvas>
+  <p class="hint">✨ اضغط على القلب ✨</p>
+</div>
+
+<!-- MESSAGE -->
+<div id="msgPage">
+  <canvas id="bearCanvas" width="340" height="310"></canvas>
+  <div class="msg-box">
+    <p class="msg-text" id="msgText">اكتب رسالتك هنا ✨</p>
+  </div>
+  <button class="back-btn" id="backBtn">← ارجع للقلب</button>
+</div>
+
+<script>
+/* ── particles ── */
+const ptsEl=document.getElementById('pts');
+for(let i=0;i<28;i++){
+  const d=document.createElement('div'); d.className='pt';
+  const s=2+Math.random()*5;
+  d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;top:${Math.random()*100}%;
+    background:hsl(${340+Math.random()*40},90%,${62+Math.random()*18}%);
+    --d:${4+Math.random()*6}s;--dl:${Math.random()*6}s`;
+  ptsEl.appendChild(d);
+}
+
+/* ═══════════════════════════════
+   HEART CANVAS
+═══════════════════════════════ */
+const hc=document.getElementById('heartCanvas');
+const hctx=hc.getContext('2d');
+let hT=0;
+
+function heartOutline(ctx,cx,cy,sz){
+  ctx.beginPath();
+  for(let a=0;a<=Math.PI*2;a+=0.01){
+    const x=sz*16*Math.pow(Math.sin(a),3);
+    const y=-sz*(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a));
+    a===0?ctx.moveTo(cx+x,cy+y):ctx.lineTo(cx+x,cy+y);
+  }
+  ctx.closePath();
+}
+
+function drawHeartPage(){
+  hT+=0.04;
+  const sc=1+0.13*Math.sin(hT*1.8);
+  const br=0.5+0.5*Math.abs(Math.sin(hT*1.8));
+  hctx.clearRect(0,0,220,200);
+  hctx.save();
+  hctx.translate(110,105); hctx.scale(sc,sc);
+  hctx.shadowColor=`rgba(201,24,74,${0.3+br*0.7})`; hctx.shadowBlur=20+br*40;
+  const g=hctx.createRadialGradient(0,-10,5,0,10,70);
+  g.addColorStop(0,`rgba(255,${120+br*80|0},${130+br*60|0},1)`);
+  g.addColorStop(1,'#c9184a');
+  heartOutline(hctx,0,0,5.2); hctx.fillStyle=g; hctx.fill();
+  heartOutline(hctx,0,0,5.2); hctx.clip();
+  hctx.fillStyle='rgba(255,255,255,0.13)';
+  hctx.beginPath(); hctx.ellipse(-14,-18,20,12,-0.5,0,Math.PI*2); hctx.fill();
+  hctx.restore();
+  requestAnimationFrame(drawHeartPage);
+}
+drawHeartPage();
+document.getElementById('heartCanvas').addEventListener('click',openMsg);
+
+/* ═══════════════════════════════
+   BEAR CANVAS
+═══════════════════════════════ */
+const bc=document.getElementById('bearCanvas');
+const bctx=bc.getContext('2d');
+let bT=0, bearRAF=null;
+
+// envelope animation state
+const ENV={active:false,done:false,prog:0,startT:0};
+
+function fillHeart(ctx,cx,cy,size,c1,c2){
+  const g=ctx.createRadialGradient(cx,cy-size*.2,size*.1,cx,cy,size*1.4);
+  g.addColorStop(0,c2||c1); g.addColorStop(1,c1);
+  ctx.beginPath();
+  const k=size*0.054;
+  for(let a=0;a<=Math.PI*2;a+=0.02){
+    const x=k*16*Math.pow(Math.sin(a),3);
+    const y=-k*(13*Math.cos(a)-5*Math.cos(2*a)-2*Math.cos(3*a)-Math.cos(4*a));
+    a===0?ctx.moveTo(cx+x,cy+y):ctx.lineTo(cx+x,cy+y);
+  }
+  ctx.closePath(); ctx.fillStyle=g; ctx.fill();
+}
+
+function drawBear(t){
+  bctx.clearRect(0,0,340,310);
+  const bob =Math.sin(t*1.6)*6;
+  const lean=Math.sin(t*0.9)*0.12;
+  const cx=170, cy=158+bob;
+
+  bctx.save();
+  bctx.translate(cx,cy); bctx.rotate(lean); bctx.translate(-cx,-cy);
+
+  const FUR='#c8a882', FUR2='#b89068', BELLY='#e8cca8', NOSE='#6a3a18';
+
+  /* legs */
+  for(const [lx,sd] of [[cx-28,1],[cx+28,-1]]){
+    const lb=Math.sin(t*1.6+sd*.4)*4;
+    bctx.beginPath(); bctx.ellipse(lx,cy+62+lb,16,22,sd*.12,0,Math.PI*2);
+    bctx.fillStyle=FUR2; bctx.fill();
+    bctx.beginPath(); bctx.ellipse(lx+sd*2,cy+83+lb,18,9,0,0,Math.PI*2);
+    bctx.fillStyle='#9a6840'; bctx.fill();
+  }
+
+  /* body */
+  bctx.beginPath(); bctx.ellipse(cx,cy+14,52,58,0,0,Math.PI*2);
+  bctx.fillStyle=FUR; bctx.fill();
+  bctx.beginPath(); bctx.ellipse(cx,cy+24,30,36,0,0,Math.PI*2);
+  bctx.fillStyle=BELLY; bctx.fill();
+
+  /* arms */
+  for(const [ax,sd,br] of [[cx-54,-1,-0.3],[cx+54,1,0.3]]){
+    const sw=sd*Math.sin(t*1.6)*.18;
+    bctx.save(); bctx.translate(ax,cy+4); bctx.rotate(br+sw);
+    bctx.beginPath(); bctx.ellipse(0,0,14,28,0,0,Math.PI*2); bctx.fillStyle=FUR; bctx.fill();
+    bctx.beginPath(); bctx.ellipse(0,28,14,10,0,0,Math.PI*2); bctx.fillStyle=FUR2; bctx.fill();
+    bctx.restore();
+  }
+
+  const hcy=cy-64+bob*.3;
+
+  /* ears */
+  for(const [ex] of [[cx-38],[cx+38]]){
+    bctx.beginPath(); bctx.arc(ex,hcy-20,17,0,Math.PI*2); bctx.fillStyle=FUR; bctx.fill();
+    bctx.beginPath(); bctx.arc(ex,hcy-20,9,0,Math.PI*2); bctx.fillStyle='#e8b4b8'; bctx.fill();
+  }
+
+  /* head */
+  bctx.beginPath(); bctx.arc(cx,hcy,46,0,Math.PI*2); bctx.fillStyle=FUR; bctx.fill();
+
+  /* eyes + blink */
+  const bl=t%3<0.12?0:7;
+  for(const ex of [cx-17,cx+17]){
+    bctx.beginPath(); bctx.ellipse(ex,hcy+2,7,bl,0,0,Math.PI*2); bctx.fillStyle='#1a0f05'; bctx.fill();
+    if(bl>2){ bctx.beginPath(); bctx.arc(ex+2,hcy,2.5,0,Math.PI*2); bctx.fillStyle='white'; bctx.fill(); }
+  }
+
+  /* snout */
+  bctx.beginPath(); bctx.ellipse(cx,hcy+14,18,12,0,0,Math.PI*2); bctx.fillStyle='#d4a070'; bctx.fill();
+  bctx.beginPath(); bctx.ellipse(cx,hcy+9,9,6,0,0,Math.PI*2); bctx.fillStyle=NOSE; bctx.fill();
+  for(const nx of [cx-5,cx+5]){
+    bctx.beginPath(); bctx.arc(nx,hcy+10,2,0,Math.PI*2); bctx.fillStyle='#3a1a05'; bctx.fill();
+  }
+  bctx.beginPath(); bctx.moveTo(cx-12,hcy+18); bctx.quadraticCurveTo(cx,hcy+28,cx+12,hcy+18);
+  bctx.strokeStyle=NOSE; bctx.lineWidth=2.5; bctx.lineCap='round'; bctx.stroke();
+
+  /* chest heart pulse */
+  const hp=1+0.18*Math.sin(t*3.2);
+  bctx.save(); bctx.translate(cx,cy-6); bctx.scale(hp,hp); bctx.translate(-cx,-(cy-6));
+  fillHeart(bctx,cx,cy-6,17,'#c9184a','#ff758f');
+  bctx.restore();
+
+  /* ══ ENVELOPE animation ══ */
+  if(ENV.active){
+    const elapsed=t-ENV.startT;
+    ENV.prog=Math.min(elapsed/1.5,1);
+    if(ENV.prog>=1){ENV.done=true;ENV.active=false;}
+  }
+
+  if(ENV.active||ENV.done){
+    const p=ENV.prog;
+    // start at chest heart, arc up+right
+    const startX=cx, startY=cy-6;
+    const ctrlX=cx+80, ctrlY=cy-140;
+    const endX=cx+145, endY=cy-90;
+    // quadratic bezier position
+    const ex=Math.pow(1-p,2)*startX+2*(1-p)*p*ctrlX+p*p*endX;
+    const ey=Math.pow(1-p,2)*startY+2*(1-p)*p*ctrlY+p*p*endY;
+    // rotation follows tangent
+    const tdx=2*(1-p)*(ctrlX-startX)+2*p*(endX-ctrlX);
+    const tdy=2*(1-p)*(ctrlY-startY)+2*p*(endY-ctrlY);
+    const angle=Math.atan2(tdy,tdx);
+    const es=0.35+p*0.65;
+
+    bctx.save();
+    bctx.translate(ex,ey);
+    bctx.rotate(angle);
+    bctx.scale(es,es);
+
+    // envelope body
+    bctx.beginPath();
+    bctx.roundRect(-26,-17,52,34,5);
+    bctx.fillStyle='#fff8f0';
+    bctx.fill();
+    bctx.strokeStyle='#c9184a'; bctx.lineWidth=2/es; bctx.stroke();
+
+    // flap opening animation
+    const flapOpen=Math.min(p*2.5,1);
+    bctx.save();
+    bctx.translate(0,-17);
+    bctx.beginPath();
+    bctx.moveTo(-26,0);
+    // flap pivots open
+    const fy=-20*(flapOpen);
+    bctx.lineTo(0,fy);
+    bctx.lineTo(26,0);
+    bctx.closePath();
+    bctx.fillStyle='#fde8ee'; bctx.fill();
+    bctx.strokeStyle='#c9184a'; bctx.lineWidth=2/es; bctx.stroke();
+    bctx.restore();
+
+    // bottom V folds
+    bctx.beginPath();
+    bctx.moveTo(-26,-17); bctx.lineTo(0,8); bctx.lineTo(26,-17);
+    bctx.strokeStyle='rgba(201,24,74,.25)'; bctx.lineWidth=1.5/es; bctx.stroke();
+
+    // side folds
+    bctx.beginPath();
+    bctx.moveTo(-26,17); bctx.lineTo(0,8); bctx.moveTo(26,17); bctx.lineTo(0,8);
+    bctx.stroke();
+
+    // tiny heart on envelope
+    bctx.save(); bctx.scale(0.52,0.52);
+    fillHeart(bctx,0,8,10,'#c9184a','#ff758f');
+    bctx.restore();
+
+    // letter peeking out when flap opens
+    if(flapOpen>0.5){
+      const lp=(flapOpen-0.5)*2;
+      bctx.save();
+      bctx.beginPath(); bctx.rect(-18,-17,-0+36,-17+lp*20);
+      bctx.clip();
+      bctx.fillStyle='#ffe0e8';
+      bctx.fillRect(-18,-17,36,20);
+      // lines on letter
+      bctx.strokeStyle='rgba(201,24,74,.4)'; bctx.lineWidth=1.5/es;
+      for(let li=0;li<3;li++){
+        bctx.beginPath();
+        bctx.moveTo(-12,-11+li*5); bctx.lineTo(12,-11+li*5); bctx.stroke();
+      }
+      bctx.restore();
+    }
+
+    // sparkles while flying
+    if(ENV.active){
+      for(let i=0;i<6;i++){
+        const sa=t*5+i*1.05;
+        const sr=22+i*6;
+        bctx.fillStyle=`rgba(255,${100+i*25|0},150,${0.8-i*.1})`;
+        bctx.beginPath();
+        bctx.arc(Math.cos(sa)*sr,Math.sin(sa)*sr,3,0,Math.PI*2);
+        bctx.fill();
+      }
+    }
+
+    bctx.restore();
+  }
+
+  bctx.restore();
+}
+
+function animateBear(){
+  bT+=0.025;
+  drawBear(bT);
+  bearRAF=requestAnimationFrame(animateBear);
+}
+
+/* ═══════════════════════════════
+   PAGE TRANSITIONS
+═══════════════════════════════ */
+const heartPage=document.getElementById('heartPage');
+const msgPage=document.getElementById('msgPage');
+const backBtn=document.getElementById('backBtn');
+
+function openMsg(){
+  heartPage.style.opacity='0';
+  heartPage.style.transform='scale(1.25)';
+  setTimeout(()=>{
+    heartPage.style.display='none';
+    msgPage.style.display='flex';
+    setTimeout(()=>{
+      msgPage.classList.add('show');
+      animateBear();
+      setTimeout(()=>{
+        ENV.active=true; ENV.done=false; ENV.prog=0; ENV.startT=bT;
+        spawnHearts();
+      },1400);
+    },50);
+  },500);
+}
+
+backBtn.addEventListener('click',()=>{
+  msgPage.classList.remove('show');
+  cancelAnimationFrame(bearRAF);
+  ENV.active=false; ENV.done=false; ENV.prog=0;
+  setTimeout(()=>{
+    msgPage.style.display='none';
+    heartPage.style.display='flex';
+    setTimeout(()=>{
+      heartPage.style.opacity='1';
+      heartPage.style.transform='scale(1)';
+    },50);
+  },600);
+});
+
+document.getElementById('heartCanvas').addEventListener('click',openMsg);
+
+function spawnHearts(){
+  const em=['💖','💗','💝','💕','♥','💌'];
+  for(let i=0;i<14;i++){
+    const h=document.createElement('div'); h.className='fh';
+    h.textContent=em[Math.floor(Math.random()*em.length)];
+    h.style.cssText=`left:${5+Math.random()*90}%;bottom:-30px;
+      font-size:${14+Math.random()*18}px;
+      animation-delay:${Math.random()*2.5}s;animation-duration:${3+Math.random()*3}s`;
+    document.body.appendChild(h);
+    h.addEventListener('animationend',()=>h.remove());
+  }
+}
+</script>
+</body>
+</html>
