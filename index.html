@@ -29,9 +29,9 @@
   }
   .hint {
     color: rgba(255,117,143,.65);
-    font-size: 15px;
+    font-size: 20px;
     letter-spacing: 2px;
-    animation: fadeHint 2s ease 1.2s both;
+    animation: fadeHint 1s ease .2s both;
   }
   @keyframes fadeHint {
     from { opacity:0; transform:translateY(8px); }
@@ -413,8 +413,8 @@ backBtn.addEventListener('click',()=>{
 document.getElementById('heartCanvas').addEventListener('click',openMsg);
 
 function spawnHearts(){
-  const em=['💖','💝','💌'];
-  for(let i=0;i<30;i++){
+  const em=['💖','💗','💌'];
+  for(let i=0;i<50;i++){
     const h=document.createElement('div'); h.className='fh';
     h.textContent=em[Math.floor(Math.random()*em.length)];
     h.style.cssText=`left:${5+Math.random()*90}%;bottom:-30px;
