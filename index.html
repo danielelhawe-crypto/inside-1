@@ -32,7 +32,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
 /* ═══════════════════════════════════════
    WATERMARK (FIXED — not searchable)
 ═══════════════════════════════════════ */
-#watermark{position:fixed;bottom:16px;left:16px;z-index:8888;font-size:.7rem;font-weight:800;letter-spacing:.35em;color:#FF6B9D;opacity:.28;pointer-events:none;user-select:none;text-transform:uppercase}
+#watermark{position:fixed;top:12px;left:14px;z-index:8888;font-size:.62rem;font-weight:900;letter-spacing:.32em;color:#FF6B9D;opacity:.38;pointer-events:none;user-select:none;text-transform:uppercase;font-family:'Tajawal',sans-serif}
 
 /* ═══════════════════════════════════════
    HERO HEADER
@@ -158,10 +158,16 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
     <section class="stage" data-stage="1">
       <div class="stage-img-wrap">
         <div class="stage-num">01</div>
-        <div class="stage-img placeholder" aria-label="صورة المرحلة 1">🏭</div>
-        <!-- ضع هنا: <img class="stage-img" src="images/factory-1.jpg" alt="..."/> -->
-        <div class="stage-img placeholder" aria-label="صورة العروسة 1">🪡</div>
-        <!-- ضع هنا: <img class="stage-img" src="images/doll-stage-1.jpg" alt="..."/> -->
+        <img class="stage-img"
+             src="assets/images/stages/stage-1-factory.jpg"
+             alt="مصنع مرحلة قص القماش"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <div class="stage-img placeholder" style="display:none">🏭</div>
+        <img class="stage-img"
+             src="assets/images/stages/stage-1-doll.jpg"
+             alt="عروسة مرحلة قص القماش"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+        <div class="stage-img placeholder" style="display:none">🪡</div>
       </div>
       <div class="stage-text">
         <span class="stage-label">المرحلة الأولى</span>
@@ -172,7 +178,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
           <span>صوت المرحلة</span>
         </div>
       </div>
-      <audio id="audio-1" src="sounds/stage-1.mp3" preload="none" loop></audio>
+      <audio id="audio-1" src="assets/sounds/stage-1.mp3" preload="none" loop></audio>
     </section>
 
     <div class="divider">✦ ✦ ✦</div>
@@ -181,8 +187,8 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
     <section class="stage" data-stage="2">
       <div class="stage-img-wrap">
         <div class="stage-num">02</div>
-        <div class="stage-img placeholder">🧵</div>
-        <div class="stage-img placeholder">🪡</div>
+        <img class="stage-img" src="assets/images/stages/stage-2-factory.jpg" alt="مصنع مرحلة الخياطة" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">🧵</div>
+        <img class="stage-img" src="assets/images/stages/stage-2-doll.jpg" alt="عروسة مرحلة الخياطة" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">🪡</div>
       </div>
       <div class="stage-text">
         <span class="stage-label">المرحلة الثانية</span>
@@ -193,7 +199,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
           <span>صوت المرحلة</span>
         </div>
       </div>
-      <audio id="audio-2" src="sounds/stage-2.mp3" preload="none" loop></audio>
+      <audio id="audio-2" src="assets/sounds/stage-2.mp3" preload="none" loop></audio>
     </section>
 
     <div class="divider">✦ ✦ ✦</div>
@@ -202,8 +208,8 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
     <section class="stage" data-stage="3">
       <div class="stage-img-wrap">
         <div class="stage-num">03</div>
-        <div class="stage-img placeholder">☁️</div>
-        <div class="stage-img placeholder">🧸</div>
+        <img class="stage-img" src="assets/images/stages/stage-3-factory.jpg" alt="مصنع مرحلة الحشو" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">☁️</div>
+        <img class="stage-img" src="assets/images/stages/stage-3-doll.jpg" alt="عروسة مرحلة الحشو" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">🧸</div>
       </div>
       <div class="stage-text">
         <span class="stage-label">المرحلة الثالثة</span>
@@ -214,7 +220,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
           <span>صوت المرحلة</span>
         </div>
       </div>
-      <audio id="audio-3" src="sounds/stage-3.mp3" preload="none" loop></audio>
+      <audio id="audio-3" src="assets/sounds/stage-3.mp3" preload="none" loop></audio>
     </section>
 
     <div class="divider">✦ ✦ ✦</div>
@@ -223,8 +229,8 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
     <section class="stage" data-stage="4">
       <div class="stage-img-wrap">
         <div class="stage-num">04</div>
-        <div class="stage-img placeholder">🎨</div>
-        <div class="stage-img placeholder">💄</div>
+        <img class="stage-img" src="assets/images/stages/stage-4-factory.jpg" alt="مصنع مرحلة التشطيب" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">🎨</div>
+        <img class="stage-img" src="assets/images/stages/stage-4-doll.jpg" alt="عروسة مرحلة التشطيب" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">💄</div>
       </div>
       <div class="stage-text">
         <span class="stage-label">المرحلة الرابعة</span>
@@ -235,7 +241,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
           <span>صوت المرحلة</span>
         </div>
       </div>
-      <audio id="audio-4" src="sounds/stage-4.mp3" preload="none" loop></audio>
+      <audio id="audio-4" src="assets/sounds/stage-4.mp3" preload="none" loop></audio>
     </section>
 
     <div class="divider">✦ ✦ ✦</div>
@@ -244,8 +250,8 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
     <section class="stage" data-stage="5">
       <div class="stage-img-wrap">
         <div class="stage-num">05</div>
-        <div class="stage-img placeholder">📡</div>
-        <div class="stage-img placeholder">🏷️</div>
+        <img class="stage-img" src="assets/images/stages/stage-5-factory.jpg" alt="مصنع مرحلة الشريحة" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">📡</div>
+        <img class="stage-img" src="assets/images/stages/stage-5-doll.jpg" alt="عروسة مرحلة الشريحة" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="stage-img placeholder" style="display:none">🏷️</div>
       </div>
       <div class="stage-text">
         <span class="stage-label">المرحلة الخامسة</span>
@@ -256,7 +262,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
           <span>صوت المرحلة</span>
         </div>
       </div>
-      <audio id="audio-5" src="sounds/stage-5.mp3" preload="none" loop></audio>
+      <audio id="audio-5" src="assets/sounds/stage-5.mp3" preload="none" loop></audio>
     </section>
 
   </div><!-- /stages-wrap -->
@@ -277,7 +283,7 @@ body{font-family:'Tajawal',sans-serif;background:#FFF0F5;color:#2d2d2d;overflow-
 ══════════════════════════════════════════════════ -->
 <script>
 /* ── CONFIG ──────────────────────────────────────── */
-const API_BASE = 'https://your-backend-domain.com'; // ← غيّر هذا
+const API_BASE = 'https://backendljkkjb5gfxxvn-production.up.railway.app';
 const THRESHOLD = 0.55; // نسبة الظهور على الشاشة قبل تشغيل الصوت
 
 /* ── NFC GUARD ───────────────────────────────────── */

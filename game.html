@@ -7,957 +7,869 @@
 <title>🧸 اصنع عروستك!</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap" rel="stylesheet"/>
 <style>
-/* ══════════════════════════════════════
-   BASE
-══════════════════════════════════════ */
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-html,body{width:100%;height:100%;overflow:hidden;font-family:'Tajawal',sans-serif;background:#1a0a2e}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0a2e;font-family:'Tajawal',sans-serif}
+canvas{position:fixed;top:0;left:0;display:block}
 
-/* ══════════════════════════════════════
-   STAGE PROGRESS BAR (top)
-══════════════════════════════════════ */
-#hud{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  background:linear-gradient(180deg,#1a0a2eff 60%,transparent);
-  padding:10px 16px 6px;
-  display:flex;flex-direction:column;gap:6px;
-}
-.stage-dots{display:flex;gap:8px;justify-content:center;align-items:center}
-.stage-dot{
-  width:32px;height:8px;border-radius:4px;
-  background:#ffffff18;transition:background .4s,width .4s;
-}
-.stage-dot.done{background:#4ade80}
-.stage-dot.active{background:linear-gradient(90deg,#FF6B9D,#9B5DE5);width:48px}
-#stage-label{text-align:center;color:#fff;font-size:.85rem;font-weight:700;opacity:.8;letter-spacing:.04em}
-#score-display{position:fixed;top:10px;left:16px;z-index:101;color:#FFD93D;font-size:1rem;font-weight:800;display:none}
+/* Logo */
+#logo{position:fixed;top:10px;left:14px;z-index:200;font-size:.65rem;font-weight:900;
+  letter-spacing:.3em;color:#FF6B9D;opacity:.45;pointer-events:none;text-transform:uppercase;
+  font-family:'Tajawal',sans-serif}
 
-/* ══════════════════════════════════════
-   GAME CANVAS WRAP
-══════════════════════════════════════ */
-#game-wrap{
-  position:fixed;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:0;
-}
-canvas{display:block;touch-action:none}
+/* HUD */
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;
+  background:linear-gradient(180deg,#1a0a2ef0 55%,transparent);
+  padding:10px 16px 6px;display:flex;flex-direction:column;align-items:center;gap:5px}
+.dots{display:flex;gap:7px;align-items:center}
+.dot{width:28px;height:7px;border-radius:4px;background:#ffffff18;transition:all .35s}
+.dot.done{background:#4ade80}
+.dot.active{background:linear-gradient(90deg,#FF6B9D,#9B5DE5);width:44px}
+#stage-lbl{font-size:.78rem;font-weight:700;color:#fff;opacity:.75;letter-spacing:.04em}
 
-/* ══════════════════════════════════════
-   BOTTOM INSTRUCTION BAR
-══════════════════════════════════════ */
-#instruction{
-  position:fixed;bottom:0;left:0;right:0;z-index:100;
-  background:linear-gradient(0deg,#1a0a2eff 70%,transparent);
-  padding:12px 20px 24px;text-align:center;
-}
-#inst-text{color:#fff;font-size:1rem;font-weight:700;margin-bottom:8px;min-height:1.4em}
-#action-btn{
-  display:none;background:linear-gradient(135deg,#FF6B9D,#9B5DE5);
-  color:#fff;border:none;border-radius:50px;
-  padding:13px 40px;font-size:1.1rem;font-weight:800;
-  font-family:'Tajawal',sans-serif;cursor:pointer;
-  box-shadow:0 4px 20px #FF6B9D66;
-  transition:transform .15s,box-shadow .15s;
-}
-#action-btn:active{transform:scale(.96)}
-#hold-bar-wrap{display:none;width:220px;margin:0 auto;height:10px;background:#ffffff18;border-radius:5px;overflow:hidden}
-#hold-bar{height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#FFD93D);border-radius:5px;transition:width .1s linear}
+/* Instruction bar */
+#inst-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;
+  background:linear-gradient(0deg,#1a0a2ef5 65%,transparent);
+  padding:10px 20px 20px;text-align:center}
+#inst-txt{color:#fff;font-size:.95rem;font-weight:700;min-height:1.3em;margin-bottom:6px}
+#prog-wrap{width:200px;height:9px;background:#ffffff18;border-radius:5px;
+  overflow:hidden;margin:0 auto;display:none}
+#prog-fill{height:100%;width:0%;background:linear-gradient(90deg,#FF6B9D,#FFD93D);
+  border-radius:5px;transition:width .12s linear}
 
-/* ══════════════════════════════════════
-   TAP RIPPLE & EFFECTS
-══════════════════════════════════════ */
-.ripple{
-  position:fixed;pointer-events:none;z-index:200;
-  width:60px;height:60px;margin:-30px 0 0 -30px;
-  border-radius:50%;border:3px solid #FFD93D;
-  animation:ripple-anim .5s ease-out forwards;
-}
-@keyframes ripple-anim{to{transform:scale(2.5);opacity:0}}
-
-/* ══════════════════════════════════════
-   PARTICLE STARS (done celebration)
-══════════════════════════════════════ */
-.star-particle{
-  position:fixed;pointer-events:none;z-index:300;
-  font-size:1.4rem;animation:star-fall 1.2s ease-in forwards;
-}
-@keyframes star-fall{0%{transform:translateY(-20px) scale(1);opacity:1}100%{transform:translateY(100px) scale(.3) rotate(360deg);opacity:0}}
-
-/* ══════════════════════════════════════
-   DONE SCREEN
-══════════════════════════════════════ */
-#done-screen{
-  position:fixed;inset:0;z-index:500;
+/* Done screen */
+#done-scr{position:fixed;inset:0;z-index:500;
   background:linear-gradient(135deg,#1a0a2e,#2d0a3e);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;
-  padding:30px;text-align:center;
-}
-#done-screen canvas{border-radius:24px;box-shadow:0 0 60px #FF6B9D55}
-#done-screen h1{color:#FFD93D;font-size:2rem;font-weight:900}
-#done-screen p{color:#ffcce6;font-size:1.05rem;max-width:320px}
-#done-screen .share-btn{
-  background:linear-gradient(135deg,#FF6B9D,#9B5DE5);
-  color:#fff;border:none;border-radius:50px;
-  padding:13px 36px;font-size:1.05rem;font-weight:800;
-  font-family:'Tajawal',sans-serif;cursor:pointer;
-}
-#done-screen .back-btn{
-  color:#9B5DE5;background:none;border:2px solid #9B5DE5;
-  border-radius:50px;padding:11px 30px;font-size:.95rem;
-  font-weight:700;font-family:'Tajawal',sans-serif;cursor:pointer;
-}
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;padding:30px;text-align:center}
+#done-scr canvas{border-radius:20px;box-shadow:0 0 50px #FF6B9D44;max-width:240px}
+#done-scr h1{color:#FFD93D;font-size:1.9rem;font-weight:900}
+#done-scr p{color:#ffcce6;font-size:1rem;max-width:300px}
+.done-btn{background:linear-gradient(135deg,#FF6B9D,#9B5DE5);color:#fff;border:none;
+  border-radius:50px;padding:12px 34px;font-size:1rem;font-weight:800;
+  font-family:'Tajawal',sans-serif;cursor:pointer;margin-top:4px}
+.done-btn.outline{background:none;border:2px solid #9B5DE5;color:#9B5DE5}
 
-/* ══════════════════════════════════════
-   TAP INDICATOR (for sewing machine)
-══════════════════════════════════════ */
-#tap-indicator{
-  position:fixed;z-index:150;pointer-events:none;display:none;
-  flex-direction:column;align-items:center;gap:4px;
-  animation:tap-pulse .6s ease-in-out infinite alternate;
-}
-#tap-indicator .hand{font-size:1.8rem}
-#tap-indicator .tap-label{color:#FFD93D;font-size:.75rem;font-weight:800;white-space:nowrap;background:#1a0a2ecc;padding:3px 10px;border-radius:20px}
-@keyframes tap-pulse{from{transform:translateY(0) scale(1)}to{transform:translateY(-8px) scale(1.1)}}
+/* Particle */
+.prt{position:fixed;pointer-events:none;z-index:600;font-size:1.3rem;
+  animation:pfall 1.2s ease-in forwards}
+@keyframes pfall{0%{opacity:1;transform:translateY(-10px) rotate(0deg)}
+  100%{opacity:0;transform:translateY(110px) rotate(360deg) scale(.3)}}
 </style>
 </head>
 <body>
-
-<!-- HUD -->
+<div id="logo">inside</div>
 <div id="hud">
-  <div class="stage-dots">
-    <div class="stage-dot active" id="dot-0"></div>
-    <div class="stage-dot" id="dot-1"></div>
-    <div class="stage-dot" id="dot-2"></div>
-    <div class="stage-dot" id="dot-3"></div>
-  </div>
-  <div id="stage-label">✂️ مرحلة القص</div>
+  <div class="dots" id="dots"></div>
+  <div id="stage-lbl">✂️ قص القماش</div>
 </div>
-
-<!-- Tap Indicator (sewing) -->
-<div id="tap-indicator"><div class="hand">👆</div><div class="tap-label">اضغط!</div></div>
-
-<!-- Game Area -->
-<div id="game-wrap">
-  <canvas id="gc"></canvas>
+<canvas id="gc"></canvas>
+<div id="inst-bar">
+  <div id="inst-txt">حرّك إصبعك على الخط لتقص العروسة</div>
+  <div id="prog-wrap"><div id="prog-fill"></div></div>
 </div>
-
-<!-- Bottom Bar -->
-<div id="instruction">
-  <div id="inst-text">اضغط مع الاستمرار على ✂️ لقص القماش</div>
-  <div id="hold-bar-wrap"><div id="hold-bar"></div></div>
-  <button id="action-btn">ابدأ</button>
-</div>
-
-<!-- Done Screen -->
-<div id="done-screen">
-  <canvas id="done-canvas" width="260" height="340"></canvas>
+<div id="done-scr">
+  <canvas id="done-c" width="220" height="308"></canvas>
   <h1>🎉 عروستك جاهزة!</h1>
-  <p>تهانينا! صنعتِ عروسة رائعة بيدك 🧸✨</p>
-  <button class="share-btn" onclick="location.href='index.html'">🏠 العودة للبداية</button>
-  <button class="back-btn" onclick="restartGame()">🔄 العب مرة أخرى</button>
+  <p>صنعتِ عروسة رائعة بيديكِ 🧸✨</p>
+  <button class="done-btn" onclick="location.href='index.html'">🏠 الرئيسية</button>
+  <button class="done-btn outline" onclick="G.restart()">🔄 العب مرة أخرى</button>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     GAME SCRIPT
-═══════════════════════════════════════════════════════ -->
 <script>
-"use strict";
+'use strict';
+// ══════════════════════════════════════════════════════════
+//  VIRTUAL COORDINATE SYSTEM  VW=400  VH=700
+// ══════════════════════════════════════════════════════════
+const VW=400, VH=700;
+let scale=1, oX=0, oY=0; // offset for letterbox
 
-/* ─────────────────────────────────────────────────
-   GLOBALS
-───────────────────────────────────────────────── */
-const canvas  = document.getElementById('gc');
-const ctx     = canvas.getContext('2d');
-let W = 0, H = 0, S = 1; // width, height, scale
-
-const STAGES = [
-  { id:'cutting',   label:'✂️ مرحلة القص'      },
-  { id:'sewing',    label:'🧵 مرحلة الخياطة'   },
-  { id:'stuffing',  label:'☁️ مرحلة الحشو'     },
-  { id:'finishing', label:'💄 مرحلة التشطيب'   },
-];
-let currentStage = 0;
-
-/* ─────────────────────────────────────────────────
-   CANVAS SETUP
-───────────────────────────────────────────────── */
-function setupCanvas() {
-  const maxW = Math.min(400, window.innerWidth);
-  const maxH = window.innerHeight;
-  const size = Math.min(maxW, maxH * .85);
-  W = canvas.width  = size;
-  H = canvas.height = Math.round(size * 1.25);
-  S = size / 360;
-  document.getElementById('game-wrap').style.paddingTop  = '62px';
-  document.getElementById('game-wrap').style.paddingBottom = '90px';
-}
-
-/* ─────────────────────────────────────────────────
-   DOLL ANATOMY  (all coords in 360-base units)
-───────────────────────────────────────────────── */
-const D = {
-  // Head
-  hx: 180, hy: 108, hr: 54,
-  // Body
-  bx: 120, by: 158, bw: 120, bh: 110,
-  // Legs
-  ll: { x1:145, y1:266, x2:137, y2:380 },
-  rl: { x1:215, y1:266, x2:223, y2:380 },
-  // Arms
-  la: { x1:122, y1:180, cx:72, cy:230, x2:60, y2:272 },
-  ra: { x1:238, y1:180, cx:288, cy:230, x2:300, y2:272 },
+// Doll anatomy (virtual)
+const D={
+  hx:200,hy:112,hr:62,
+  bx:140,by:176,bw:120,bh:125,
+  lax1:140,lay1:196,lacx:75,lacy:248,lax2:60,lay2:300,
+  rax1:260,ray1:196,racx:325,racy:248,rax2:340,ray2:300,
+  llx:155,lly1:300,lly2:487,
+  rlx:245,rly1:300,rly2:487,
+  lshx:152,lshy:495, rshx:248,rshy:495,
 };
+const BRAID_L=[{x:134,y:130},{x:118,y:154},{x:136,y:178},{x:118,y:202},{x:136,y:226},{x:118,y:250},{x:136,y:274},{x:96,y:312}];
+const BRAID_R=[{x:266,y:130},{x:282,y:154},{x:264,y:178},{x:282,y:202},{x:264,y:226},{x:282,y:250},{x:264,y:274},{x:304,y:312}];
 
-// ── Sewing path (13 points forming doll outline) ──
-const SEW_PTS_BASE = [
-  {x:180,y:52},  {x:232,y:74},  {x:258,y:116}, {x:252,y:160},
-  {x:304,y:272}, {x:264,y:284}, {x:228,y:388}, {x:180,y:400},
-  {x:132,y:388}, {x:96,y:284},  {x:56,y:272},  {x:108,y:160},
-  {x:102,y:116}, {x:128,y:74},
+// ── Cutting path (53 waypoints clockwise) ─────────────────
+const CUT_PATH=[
+  {x:200,y:50},{x:232,y:55},{x:257,y:71},{x:269,y:96},{x:269,y:126},{x:258,y:150},{x:244,y:163},
+  {x:233,y:171},{x:260,y:177},
+  {x:296,y:212},{x:325,y:254},{x:334,y:296},{x:322,y:312},{x:303,y:319},
+  {x:283,y:305},{x:268,y:265},{x:261,y:226},{x:261,y:198},
+  {x:261,y:299},
+  {x:249,y:311},{x:251,y:395},{x:253,y:456},{x:257,y:487},
+  {x:270,y:501},{x:261,y:514},{x:239,y:520},{x:200,y:522},
+  {x:161,y:520},{x:139,y:514},{x:130,y:501},
+  {x:143,y:487},{x:147,y:456},{x:149,y:395},{x:151,y:311},
+  {x:139,y:299},{x:139,y:198},{x:139,y:226},{x:132,y:265},{x:117,y:305},
+  {x:97,y:319},{x:78,y:312},{x:66,y:296},{x:75,y:254},{x:104,y:212},
+  {x:140,y:177},{x:156,y:171},{x:156,y:163},{x:142,y:150},{x:131,y:126},{x:131,y:96},{x:143,y:71},{x:168,y:55},
+  {x:200,y:50}
 ];
 
-function sewPts() { return SEW_PTS_BASE.map(p => ({x: p.x*S, y: p.y*S})); }
-
-/* ─────────────────────────────────────────────────
-   DRAWING HELPERS
-───────────────────────────────────────────────── */
-function s(v){ return v * S; }  // scale a value
-
-function drawFabric() {
-  // Gingham check background
-  ctx.fillStyle = '#FFE8F0';
-  ctx.fillRect(0, 0, W, H);
-  const sz = s(18);
-  ctx.fillStyle = '#FFB3CC44';
-  for (let r = 0; r * sz < H + sz; r++) {
-    for (let c = 0; c * sz < W + sz; c++) {
-      if ((r + c) % 2 === 0) ctx.fillRect(c * sz, r * sz, sz, sz);
-    }
-  }
-  // horizontal lines
-  ctx.strokeStyle = '#FF6B9D22'; ctx.lineWidth = 1;
-  for (let y = 0; y < H; y += sz) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-  for (let x = 0; x < W; x += sz) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+// ── Sewing sections ────────────────────────────────────────
+function buildSewSections(){
+  // Body: 15 stitches around rect
+  const body=[];
+  for(let i=0;i<5;i++) body.push({x:152+i*24,y:178});
+  for(let i=0;i<3;i++) body.push({x:259,y:200+i*34});
+  for(let i=0;i<4;i++) body.push({x:250-i*28,y:299});
+  for(let i=0;i<3;i++) body.push({x:141,y:272-i*34});
+  // Left arm: 10 along bezier
+  const lArm=[]; for(let i=0;i<10;i++){const t=i/9; lArm.push({x:Math.round((1-t)*(1-t)*D.lax1+2*(1-t)*t*D.lacx+t*t*D.lax2),y:Math.round((1-t)*(1-t)*D.lay1+2*(1-t)*t*D.lacy+t*t*D.lay2)});}
+  // Right arm: 10 along bezier
+  const rArm=[]; for(let i=0;i<10;i++){const t=i/9; rArm.push({x:Math.round((1-t)*(1-t)*D.rax1+2*(1-t)*t*D.racx+t*t*D.rax2),y:Math.round((1-t)*(1-t)*D.ray1+2*(1-t)*t*D.racy+t*t*D.ray2)});}
+  // Legs: 10 each
+  const lLeg=[]; for(let i=0;i<10;i++) lLeg.push({x:D.llx-4,y:D.lly1+i*19});
+  const rLeg=[]; for(let i=0;i<10;i++) rLeg.push({x:D.rlx+4,y:D.rly1+i*19});
+  return[
+    {name:'الجسم',pts:body},
+    {name:'الإيد اليسار',pts:lArm},
+    {name:'الإيد اليمين',pts:rArm},
+    {name:'الرجل اليسار',pts:lLeg},
+    {name:'الرجل اليمين',pts:rLeg},
+  ];
 }
 
-function dollPath(ctx2) {
-  ctx2.beginPath();
-  ctx2.arc(s(D.hx), s(D.hy), s(D.hr), 0, Math.PI*2);
-  ctx2.closePath();
-  ctx2.moveTo(s(D.bx), s(D.by)); // body
-  ctx2.roundRect(s(D.bx), s(D.by), s(D.bw), s(D.bh), s(12));
-  ctx2.closePath();
-}
+// ══════════════════════════════════════════════════════════
+//  CANVAS & SCALE
+// ══════════════════════════════════════════════════════════
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+let makeupCanvas=document.createElement('canvas');
+let mctx=makeupCanvas.getContext('2d');
 
-function drawDollOutline(style='dashed') {
-  ctx.save();
-  if (style === 'dashed') {
-    ctx.setLineDash([s(8), s(5)]);
-    ctx.strokeStyle = '#9B5DE5';
-    ctx.lineWidth = s(2.5);
-  } else {
-    ctx.setLineDash([]);
-    ctx.strokeStyle = '#FF6B9D';
-    ctx.lineWidth = s(3);
-  }
-
-  // Head
-  ctx.beginPath(); ctx.arc(s(D.hx), s(D.hy), s(D.hr), 0, Math.PI*2); ctx.stroke();
-  // Body
-  ctx.beginPath(); ctx.roundRect(s(D.bx), s(D.by), s(D.bw), s(D.bh), s(12)); ctx.stroke();
-  // Legs
-  ctx.lineWidth = s(14); ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(s(D.ll.x1),s(D.ll.y1)); ctx.lineTo(s(D.ll.x2),s(D.ll.y2)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s(D.rl.x1),s(D.rl.y1)); ctx.lineTo(s(D.rl.x2),s(D.rl.y2)); ctx.stroke();
-  // Arms
-  ctx.beginPath(); ctx.moveTo(s(D.la.x1),s(D.la.y1)); ctx.quadraticCurveTo(s(D.la.cx),s(D.la.cy),s(D.la.x2),s(D.la.y2)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s(D.ra.x1),s(D.ra.y1)); ctx.quadraticCurveTo(s(D.ra.cx),s(D.ra.cy),s(D.ra.x2),s(D.ra.y2)); ctx.stroke();
-
-  ctx.restore();
-}
-
-// Full coloured doll
-function drawDoll({ flat=false, stuffed=0, lipstick=false, powder=false, hairLeft=false, hairRight=false }={}) {
-  const puff = flat ? 0 : stuffed; // 0-1
-
-  // ── HAIR BACK ──
-  ctx.save();
-  ctx.fillStyle = '#C0392B';
-  ctx.beginPath();
-  ctx.arc(s(D.hx), s(D.hy-10), s(D.hr+4), Math.PI, Math.PI*2);
-  ctx.fill();
-
-  // BRAIDS
-  drawBraid(s(94), s(D.hy-5), s(72), s(280), hairLeft);
-  drawBraid(s(266), s(D.hy-5), s(288), s(280), hairRight);
-  ctx.restore();
-
-  // ── LEGS ──
-  const legColor = '#FFD5B8';
-  ctx.save(); ctx.lineCap='round'; ctx.lineWidth=s(22+puff*6);
-  ctx.strokeStyle=legColor;
-  ctx.beginPath(); ctx.moveTo(s(D.ll.x1),s(D.ll.y1)); ctx.lineTo(s(D.ll.x2),s(D.ll.y2)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s(D.rl.x1),s(D.rl.y1)); ctx.lineTo(s(D.rl.x2),s(D.rl.y2)); ctx.stroke();
-  ctx.restore();
-
-  // ── SHOES ──
-  ctx.save();
-  ctx.fillStyle='#9B5DE5';
-  ctx.beginPath(); ctx.ellipse(s(D.ll.x2),s(D.ll.y2+8),s(18+puff*2),s(10),0,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s(D.rl.x2),s(D.rl.y2+8),s(18+puff*2),s(10),0,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-
-  // ── ARMS ──
-  ctx.save(); ctx.lineCap='round'; ctx.lineWidth=s(20+puff*4); ctx.strokeStyle='#FFD5B8';
-  ctx.beginPath(); ctx.moveTo(s(D.la.x1),s(D.la.y1)); ctx.quadraticCurveTo(s(D.la.cx),s(D.la.cy),s(D.la.x2),s(D.la.y2)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s(D.ra.x1),s(D.ra.y1)); ctx.quadraticCurveTo(s(D.ra.cx),s(D.ra.cy),s(D.ra.x2),s(D.ra.y2)); ctx.stroke();
-  ctx.fillStyle='#FFD5B8';
-  ctx.beginPath(); ctx.arc(s(D.la.x2),s(D.la.y2),s(14+puff*2),0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(s(D.ra.x2),s(D.ra.y2),s(14+puff*2),0,Math.PI*2); ctx.fill();
-  ctx.restore();
-
-  // ── BODY ──
-  const bodyInflate = puff * s(6);
-  ctx.save();
-  ctx.fillStyle = '#FF6B9D';
-  ctx.beginPath();
-  ctx.roundRect(s(D.bx)-bodyInflate/2, s(D.by), s(D.bw)+bodyInflate, s(D.bh)+bodyInflate/2, s(14));
-  ctx.fill();
-  // Dress trim
-  ctx.strokeStyle='#9B5DE5'; ctx.lineWidth=s(3.5); ctx.setLineDash([]);
-  ctx.beginPath(); ctx.moveTo(s(D.bx),s(D.by+8)); ctx.lineTo(s(D.bx+D.bw),s(D.by+8)); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(s(D.bx),s(D.by+D.bh-8)); ctx.lineTo(s(D.bx+D.bw),s(D.by+D.bh-8)); ctx.stroke();
-  // Heart
-  drawHeart(s(180), s(D.by+52), s(14), '#FFD93D');
-  ctx.restore();
-
-  // ── HEAD ──
-  ctx.save();
-  const hs = s(D.hr) + puff * s(4);
-  ctx.fillStyle='#FFD5B8';
-  ctx.beginPath(); ctx.arc(s(D.hx),s(D.hy),hs,0,Math.PI*2); ctx.fill();
-  // CHEEKS
-  ctx.fillStyle= powder ? '#FFB3C688' : '#FFB3C644';
-  ctx.beginPath(); ctx.ellipse(s(D.hx-32),s(D.hy+10),s(18),s(12),0,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s(D.hx+32),s(D.hy+10),s(18),s(12),0,0,Math.PI*2); ctx.fill();
-  if (powder) { // extra powder blush
-    ctx.fillStyle='#FF6B9D44';
-    ctx.beginPath(); ctx.ellipse(s(D.hx-32),s(D.hy+10),s(22),s(15),0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(s(D.hx+32),s(D.hy+10),s(22),s(15),0,0,Math.PI*2); ctx.fill();
-  }
-  // Eyes
-  ctx.fillStyle='white';
-  ctx.beginPath(); ctx.ellipse(s(D.hx-20),s(D.hy-4),s(10),s(11),0,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(s(D.hx+20),s(D.hy-4),s(10),s(11),0,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#222';
-  ctx.beginPath(); ctx.arc(s(D.hx-19),s(D.hy-3),s(6),0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(s(D.hx+19),s(D.hy-3),s(6),0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='white'; // sparkle
-  ctx.beginPath(); ctx.arc(s(D.hx-16),s(D.hy-6),s(2.5),0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(s(D.hx+22),s(D.hy-6),s(2.5),0,Math.PI*2); ctx.fill();
-  // Eyelashes (top)
-  ctx.strokeStyle='#222'; ctx.lineWidth=s(1.8); ctx.lineCap='round';
-  [[-28,-16],[[-23,-17]],[[-17,-18]],[[-11,-16]]].flat().forEach(([ox,oy]) => {
-    const ex = s(D.hx-20+ox+20); const ey = s(D.hy-4+oy);
-    ctx.beginPath(); ctx.moveTo(ex, ey+s(2)); ctx.lineTo(ex, ey-s(2)); ctx.stroke();
-  });
-  // Mouth
-  ctx.strokeStyle = lipstick ? '#CC0033' : '#E8756B';
-  ctx.lineWidth = lipstick ? s(3.5) : s(2.5); ctx.lineCap='round'; ctx.setLineDash([]);
-  ctx.beginPath(); ctx.moveTo(s(D.hx-16),s(D.hy+15)); ctx.quadraticCurveTo(s(D.hx),s(D.hy+26),s(D.hx+16),s(D.hy+15)); ctx.stroke();
-  if (lipstick) {
-    ctx.fillStyle='#CC003388';
-    ctx.beginPath(); ctx.moveTo(s(D.hx-16),s(D.hy+15)); ctx.quadraticCurveTo(s(D.hx),s(D.hy+26),s(D.hx+16),s(D.hy+15)); ctx.quadraticCurveTo(s(D.hx),s(D.hy+20),s(D.hx-16),s(D.hy+15)); ctx.fill();
-  }
-  ctx.restore();
-
-  // ── HAIR FRONT (ponytails/buns at sides of head) ──
-  ctx.fillStyle='#C0392B';
-  ctx.beginPath(); ctx.arc(s(D.hx-52), s(D.hy-8), s(16), 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(s(D.hx+52), s(D.hy-8), s(16), 0, Math.PI*2); ctx.fill();
-}
-
-function drawBraid(x1, y1, x2, y2, hasTie) {
-  ctx.save();
-  const segments = 9;
-  const dx = x2-x1, dy = y2-y1;
-  ctx.lineCap = 'round';
-  // alternating zigzag braid
-  for (let i = 0; i < segments; i++) {
-    const t0 = i/segments, t1 = (i+1)/segments;
-    const ox = (i%2===0 ? 1:-1) * s(4);
-    ctx.strokeStyle = i%2===0 ? '#922B21' : '#C0392B';
-    ctx.lineWidth = s(7);
-    ctx.beginPath();
-    ctx.moveTo(x1+dx*t0+ox, y1+dy*t0);
-    ctx.lineTo(x1+dx*t1-ox, y1+dy*t1);
-    ctx.stroke();
-  }
-  // tie (توكة)
-  if (hasTie) {
-    ctx.save();
-    ctx.fillStyle = '#FFD93D';
-    ctx.strokeStyle = '#FF6B9D'; ctx.lineWidth = s(2);
-    const tx = x2, ty = y2;
-    ctx.beginPath(); ctx.arc(tx, ty, s(9), 0, Math.PI*2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#FF6B9D';
-    ctx.font = `bold ${s(10)}px Tajawal`; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('✿', tx, ty);
-    ctx.restore();
-  }
-  ctx.restore();
-}
-
-function drawHeart(cx, cy, r, color) {
-  ctx.save(); ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(cx, cy+r*0.3);
-  ctx.bezierCurveTo(cx, cy-r*0.4, cx-r*1.4, cy-r*0.4, cx-r*1.4, cy+r*0.3);
-  ctx.bezierCurveTo(cx-r*1.4, cy+r*1, cx, cy+r*1.6, cx, cy+r*2);
-  ctx.bezierCurveTo(cx, cy+r*1.6, cx+r*1.4, cy+r*1, cx+r*1.4, cy+r*0.3);
-  ctx.bezierCurveTo(cx+r*1.4, cy-r*0.4, cx, cy-r*0.4, cx, cy+r*0.3);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
-}
-
-/* ─────────────────────────────────────────────────
-   SCISSORS ICON (canvas drawn)
-───────────────────────────────────────────────── */
-function drawScissors(x, y, open=false) {
-  ctx.save(); ctx.translate(x, y);
-  const a = open ? 0.28 : 0.1;
-  ctx.strokeStyle='#555'; ctx.lineWidth=s(3.5); ctx.lineCap='round';
-  // blade 1
-  ctx.save(); ctx.rotate(-a);
-  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(s(36),s(-5));
-  ctx.strokeStyle='#888'; ctx.stroke();
-  ctx.restore();
-  // blade 2
-  ctx.save(); ctx.rotate(a);
-  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(s(36),s(5));
-  ctx.strokeStyle='#888'; ctx.stroke();
-  ctx.restore();
-  // screw
-  ctx.fillStyle='#666';
-  ctx.beginPath(); ctx.arc(0,0,s(5),0,Math.PI*2); ctx.fill();
-  // handles
-  ctx.strokeStyle='#FF6B9D'; ctx.lineWidth=s(4);
-  ctx.beginPath(); ctx.arc(-s(10),s(-12),s(10),-0.5,Math.PI+0.5); ctx.stroke();
-  ctx.beginPath(); ctx.arc(-s(10),s(12),s(10),Math.PI-0.5,0.5*Math.PI*2,true); ctx.stroke();
-  ctx.restore();
-}
-
-/* ─────────────────────────────────────────────────
-   SEWING MACHINE (canvas drawn)
-───────────────────────────────────────────────── */
-function drawSewingMachine(mx, my, stitching=false) {
-  ctx.save(); ctx.translate(mx, my);
-  // base
-  ctx.fillStyle='#9B5DE5';
-  ctx.beginPath(); ctx.roundRect(-s(32),-s(24),s(64),s(48),s(8)); ctx.fill();
-  // arm
-  ctx.fillStyle='#7B3DB5';
-  ctx.beginPath(); ctx.roundRect(-s(20),-s(36),s(20),s(20),s(6)); ctx.fill();
-  // needle
-  ctx.strokeStyle='#ccc'; ctx.lineWidth=s(2.5); ctx.lineCap='round';
-  const needleY = stitching ? s(8) * (0.5+0.5*Math.sin(Date.now()/80)) : 0;
-  ctx.beginPath(); ctx.moveTo(-s(4),-s(16)); ctx.lineTo(-s(4),-s(8)+needleY); ctx.stroke();
-  // thread hole
-  ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(-s(4),s(12),s(6),0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#FF6B9D';
-  ctx.beginPath(); ctx.arc(-s(4),s(12),s(4),0,Math.PI*2); ctx.fill();
-  // button
-  ctx.fillStyle='#FFD93D';
-  ctx.beginPath(); ctx.arc(s(18),-s(8),s(7),0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#fff'; ctx.font=`bold ${s(8)}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('▶', s(18),-s(8));
-  ctx.restore();
-}
-
-/* ─────────────────────────────────────────────────
-   COTTON BALL
-───────────────────────────────────────────────── */
-function drawCotton(x, y, r) {
-  ctx.save();
-  // fluffy circles
-  const offs = [{x:0,y:0,r:1},{x:.5,y:-.4,r:.7},{x:-.5,y:-.4,r:.7},{x:.6,y:.3,r:.65},{x:-.6,y:.3,r:.65}];
-  offs.forEach(o => {
-    ctx.fillStyle='#f0f8ff';
-    ctx.beginPath(); ctx.arc(x+o.x*r, y+o.y*r, r*o.r,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='#dde'; ctx.lineWidth=1;
-    ctx.beginPath(); ctx.arc(x+o.x*r, y+o.y*r, r*o.r,0,Math.PI*2); ctx.stroke();
-  });
-  ctx.restore();
-}
-
-/* ─────────────────────────────────────────────────
-   MAKEUP ITEMS
-───────────────────────────────────────────────── */
-function drawLipstick(x, y, used=false) {
-  ctx.save(); ctx.translate(x, y);
-  // tube
-  ctx.fillStyle=used?'#888':'#FFD93D';
-  ctx.beginPath(); ctx.roundRect(-s(8),0,s(16),s(32),s(4)); ctx.fill();
-  // cap
-  ctx.fillStyle='#FF6B9D';
-  ctx.beginPath(); ctx.roundRect(-s(10),-s(18),s(20),s(20),s(5)); ctx.fill();
-  // lipstick tip
-  ctx.fillStyle='#CC0033';
-  ctx.beginPath(); ctx.moveTo(-s(8),-s(18)); ctx.lineTo(s(8),-s(18)); ctx.lineTo(s(5),-s(28)); ctx.lineTo(-s(5),-s(28)); ctx.closePath(); ctx.fill();
-  // label
-  ctx.fillStyle='#fff'; ctx.font=`${s(9)}px Tajawal`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('💋', 0, s(16));
-  ctx.restore();
-}
-
-function drawPowder(x, y, used=false) {
-  ctx.save(); ctx.translate(x, y);
-  // brush handle
-  ctx.strokeStyle=used?'#aaa':'#8B4513'; ctx.lineWidth=s(6); ctx.lineCap='round';
-  ctx.beginPath(); ctx.moveTo(0,s(30)); ctx.lineTo(0,0); ctx.stroke();
-  // brush head
-  ctx.fillStyle=used?'#ccc':'#FFB3C6';
-  ctx.beginPath(); ctx.ellipse(0,-s(14),s(14),s(10),0,0,Math.PI*2); ctx.fill();
-  ctx.strokeStyle='#FF6B9D88'; ctx.lineWidth=s(2);
-  ctx.beginPath(); ctx.ellipse(0,-s(14),s(14),s(10),0,0,Math.PI*2); ctx.stroke();
-  // powder puff puffs
-  [[-8,0],[0,-4],[8,0],[-4,4],[4,4]].forEach(([ox,oy]) => {
-    ctx.fillStyle=used?'#ddd':'#FFCCE6';
-    ctx.beginPath(); ctx.arc(ox*S, (-s(14)+oy*S), s(5), 0, Math.PI*2); ctx.fill();
-  });
-  ctx.restore();
-}
-
-/* ─────────────────────────────────────────────────
-   STAGE 0 — CUTTING
-───────────────────────────────────────────────── */
-const cut = {
-  progress: 0,
-  holding: false,
-  scissorAngle: 0,
-  // scissors travel path (simplified — around doll edge)
-  pathPts: null,
-  init() {
-    this.progress = 0; this.holding = false;
-    this.pathPts = SEW_PTS_BASE.map(p=>({x:p.x*S,y:p.y*S}));
-    setInst('اضغط مع الاستمرار على ✂️ لقص القماش');
-    showHoldBar(true);
-    showBtn(false);
-    setupHoldBtn();
-  },
-  render() {
-    drawFabric();
-    // Show cut progress by drawing clipping mask
-    const t = this.progress/100;
-    const n = Math.floor(t * this.pathPts.length);
-    // Dashed outline
-    drawDollOutline('dashed');
-    // Cut line so far (solid coloured)
-    if (n > 0) {
-      ctx.save(); ctx.setLineDash([]); ctx.strokeStyle='#FF6B9D'; ctx.lineWidth=s(3); ctx.lineCap='round';
-      ctx.beginPath(); ctx.moveTo(this.pathPts[0].x, this.pathPts[0].y);
-      for (let i=1; i<=Math.min(n,this.pathPts.length-1); i++) ctx.lineTo(this.pathPts[i].x, this.pathPts[i].y);
-      ctx.stroke(); ctx.restore();
-    }
-    // Scissors at current position
-    const idx = Math.min(Math.floor(t*this.pathPts.length), this.pathPts.length-1);
-    const pt = this.pathPts[idx];
-    drawScissors(pt.x, pt.y, this.holding);
-    // Progress text
-    ctx.save(); ctx.fillStyle='#9B5DE5'; ctx.font=`bold ${s(15)}px Tajawal`;
-    ctx.textAlign='center'; ctx.fillText(`${Math.round(this.progress)}%`, W/2, s(438));
-    ctx.restore();
-    // Update bar
-    document.getElementById('hold-bar').style.width = this.progress+'%';
-  },
-  tick() {
-    if (this.holding && this.progress < 100) {
-      this.progress = Math.min(100, this.progress + 0.9);
-      if (this.progress >= 100) this.onDone();
-    }
-  },
-  onDone() {
-    this.holding = false;
-    showHoldBar(false);
-    rippleEffect(W/2, H/2);
-    setTimeout(()=>nextStage(), 700);
-  },
-};
-
-/* ─────────────────────────────────────────────────
-   STAGE 1 — SEWING
-   Machine stops at each stitch point and waits for tap
-───────────────────────────────────────────────── */
-const sew = {
-  pts: null,
-  idx: 0,           // current stitch index (machine is HERE, waiting)
-  stitched: 0,      // how many stitches drawn
-  mPos: {x:0,y:0},  // machine current draw pos
-  moving: false,
-  stitching: false,  // playing needle anim
-  awaitTap: false,
-  init() {
-    this.pts = sewPts();
-    this.idx = 0; this.stitched = 0; this.moving = false;
-    this.stitching = false; this.awaitTap = false;
-    this.mPos = {...this.pts[0]};
-    setInst('اضغط على مكنة الخياطة لتبدأ الخياطة 🧵');
-    showBtn(false); showHoldBar(false);
-    // tap handler on canvas
-    canvas.addEventListener('pointerup', this._onTap = ()=>this.handleTap(), {passive:true});
-  },
-  destroy() {
-    canvas.removeEventListener('pointerup', this._onTap);
-  },
-  render() {
-    ctx.clearRect(0,0,W,H);
-    drawFabric();
-    drawDoll({flat:true});
-    // Stitches done so far
-    if (this.stitched > 0) {
-      ctx.save(); ctx.strokeStyle='#9B5DE5'; ctx.lineWidth=s(2.5); ctx.setLineDash([s(4),s(3)]); ctx.lineCap='round';
-      ctx.beginPath(); ctx.moveTo(this.pts[0].x, this.pts[0].y);
-      for (let i=1; i<=this.stitched && i<this.pts.length; i++) ctx.lineTo(this.pts[i].x, this.pts[i].y);
-      ctx.stroke(); ctx.restore();
-    }
-    // Sewing machine
-    drawSewingMachine(this.mPos.x, this.mPos.y, this.stitching);
-    // Tap indicator
-    if (this.awaitTap) showTapAt(this.mPos.x, this.mPos.y - s(50));
-    else hideTap();
-  },
-  handleTap() {
-    if (this.moving || this.stitching) return;
-    this.awaitTap = false;
-    this.stitching = true;
-    // After stitching anim, move to next
-    setTimeout(()=>{
-      this.stitching = false;
-      this.stitched = this.idx + 1;
-      this.idx++;
-      if (this.idx >= this.pts.length) {
-        this.destroy();
-        setTimeout(()=>nextStage(), 400);
-        return;
-      }
-      // Move machine to next point
-      this.moving = true;
-      this.moveTo(this.pts[this.idx], ()=>{
-        this.moving = false;
-        this.awaitTap = true;
-        setInst(`اضغط على المكنة لمتابعة الخياطة (${this.idx}/${this.pts.length-1})`);
-      });
-    }, 500);
-  },
-  moveTo(target, cb) {
-    const start = {...this.mPos};
-    const dur = 600;
-    const t0 = performance.now();
-    const anim = (now) => {
-      const p = Math.min((now-t0)/dur, 1);
-      const ease = p<.5 ? 2*p*p : -1+(4-2*p)*p;
-      this.mPos.x = start.x + (target.x-start.x)*ease;
-      this.mPos.y = start.y + (target.y-start.y)*ease;
-      if (p<1) requestAnimationFrame(anim); else cb();
-    };
-    requestAnimationFrame(anim);
-  },
-};
-
-/* ─────────────────────────────────────────────────
-   STAGE 2 — STUFFING
-───────────────────────────────────────────────── */
-const stuff = {
-  total: 6,
-  stuffed: 0,
-  balls: [],
-  init() {
-    this.stuffed = 0;
-    // place cotton balls around the sides
-    this.balls = [
-      {x:s(40),  y:s(120), r:s(22), active:true},
-      {x:s(320), y:s(100), r:s(20), active:true},
-      {x:s(30),  y:s(260), r:s(24), active:true},
-      {x:s(330), y:s(260), r:s(22), active:true},
-      {x:s(60),  y:s(380), r:s(20), active:true},
-      {x:s(300), y:s(380), r:s(20), active:true},
-    ];
-    setInst('انقر على كرات الحشو وضعها داخل العروسة ☁️');
-    showBtn(false); showHoldBar(false);
-    canvas.addEventListener('pointerup', this._onTap=(e)=>this.handleTap(e), {passive:true});
-  },
-  destroy(){ canvas.removeEventListener('pointerup', this._onTap); },
-  getPos(e){
-    const r = canvas.getBoundingClientRect();
-    const x = (e.changedTouches?.[0]?.clientX ?? e.clientX) - r.left;
-    const y = (e.changedTouches?.[0]?.clientY ?? e.clientY) - r.top;
-    return {x,y};
-  },
-  handleTap(e){
-    const {x,y}=this.getPos(e);
-    for (let b of this.balls) {
-      if (!b.active) continue;
-      const d = Math.hypot(x-b.x, y-b.y);
-      if (d <= b.r+s(10)) {
-        b.active=false; this.stuffed++;
-        rippleEffect(b.x,b.y);
-        if (this.stuffed >= this.total) {
-          this.destroy(); setTimeout(()=>nextStage(),500);
-        }
-        return;
-      }
-    }
-  },
-  render(){
-    ctx.clearRect(0,0,W,H);
-    drawFabric();
-    const puff = this.stuffed/this.total;
-    drawDoll({stuffed:puff});
-    // remaining cotton balls
-    this.balls.forEach(b=>{ if(b.active) drawCotton(b.x,b.y,b.r); });
-    // progress
-    ctx.save(); ctx.fillStyle='#9B5DE5'; ctx.font=`bold ${s(14)}px Tajawal`;
-    ctx.textAlign='center';
-    ctx.fillText(`الحشو: ${this.stuffed}/${this.total}`, W/2, s(440));
-    ctx.restore();
-  },
-};
-
-/* ─────────────────────────────────────────────────
-   STAGE 3 — FINISHING  (makeup + hair ties)
-   Sub-stages: makeup → hair
-───────────────────────────────────────────────── */
-const finish = {
-  lipstick: false, powder: false,
-  hairL: false, hairR: false,
-  sub: 'makeup', // 'makeup' | 'hair'
-  items: [],
-  init(){
-    this.lipstick=false; this.powder=false; this.hairL=false; this.hairR=false;
-    this.sub='makeup';
-    this.buildItems();
-    setInst('انقر على الروج لتلوين شفاه العروسة 💋');
-    showBtn(false); showHoldBar(false);
-    canvas.addEventListener('pointerup', this._onTap=(e)=>this.handleTap(e),{passive:true});
-  },
-  destroy(){ canvas.removeEventListener('pointerup', this._onTap); },
-  buildItems(){
-    if(this.sub==='makeup'){
-      this.items=[
-        {type:'lipstick', x:s(60),  y:s(300), used:false},
-        {type:'powder',   x:s(285), y:s(295), used:false},
-      ];
-    } else {
-      this.items=[
-        {type:'tieL', x:s(55),  y:s(265), used:false, label:'توكة يسار'},
-        {type:'tieR', x:s(290), y:s(265), used:false, label:'توكة يمين'},
-      ];
-    }
-  },
-  getPos(e){
-    const r=canvas.getBoundingClientRect();
-    return {x:(e.changedTouches?.[0]?.clientX??e.clientX)-r.left, y:(e.changedTouches?.[0]?.clientY??e.clientY)-r.top};
-  },
-  handleTap(e){
-    const {x,y}=this.getPos(e);
-    for (let it of this.items){
-      if(it.used) continue;
-      const d=Math.hypot(x-it.x, y-it.y);
-      if(d<=s(30)){
-        it.used=true; rippleEffect(it.x,it.y);
-        if(it.type==='lipstick') this.lipstick=true;
-        if(it.type==='powder')   this.powder=true;
-        if(it.type==='tieL')     this.hairL=true;
-        if(it.type==='tieR')     this.hairR=true;
-        this.checkProgress(); return;
-      }
-    }
-  },
-  checkProgress(){
-    if(this.sub==='makeup' && this.lipstick && this.powder){
-      this.sub='hair'; this.buildItems();
-      setInst('الآن اربطي الضفيرتين بالتوكات 🎀');
-    } else if(this.sub==='hair' && this.hairL && this.hairR){
-      this.destroy(); setTimeout(()=>nextStage(),500);
-    }
-  },
-  render(){
-    ctx.clearRect(0,0,W,H);
-    drawFabric();
-    drawDoll({stuffed:1, lipstick:this.lipstick, powder:this.powder, hairLeft:this.hairL, hairRight:this.hairR});
-    // Draw interactive items
-    this.items.forEach(it=>{
-      if(it.used) return;
-      if(it.type==='lipstick') drawLipstick(it.x, it.y, false);
-      if(it.type==='powder')   drawPowder(it.x, it.y, false);
-      if(it.type==='tieL'||it.type==='tieR'){
-        // draw a hair tie (colorful ring)
-        ctx.save();
-        ctx.fillStyle=it.type==='tieL'?'#FFD93D':'#00BBF9';
-        ctx.strokeStyle='#fff'; ctx.lineWidth=s(2.5);
-        ctx.beginPath(); ctx.arc(it.x,it.y,s(16),0,Math.PI*2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle='#fff'; ctx.font=`${s(14)}px Tajawal`; ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('🎀',it.x,it.y);
-        ctx.restore();
-      }
-    });
-    // status
-    const done=[this.lipstick,this.powder,this.hairL,this.hairR].filter(Boolean).length;
-    ctx.save(); ctx.fillStyle='#9B5DE5'; ctx.font=`bold ${s(13)}px Tajawal`;
-    ctx.textAlign='center';
-    ctx.fillText(`التشطيب: ${done}/4`, W/2, s(442));
-    ctx.restore();
-  },
-};
-
-/* ─────────────────────────────────────────────────
-   STAGES REGISTRY
-───────────────────────────────────────────────── */
-const STAGE_HANDLERS = [cut, sew, stuff, finish];
-let animFrame = null;
-
-function gameLoop(now) {
-  const h = STAGE_HANDLERS[currentStage];
-  if (h.tick) h.tick(now);
-  ctx.clearRect(0,0,W,H);
-  h.render(now);
-  animFrame = requestAnimationFrame(gameLoop);
-}
-
-function startStage(idx) {
-  if (animFrame) cancelAnimationFrame(animFrame);
-  currentStage = idx;
-  // update HUD
-  STAGES.forEach((_,i)=>{
-    const dot=document.getElementById(`dot-${i}`);
-    dot.classList.remove('active','done');
-    if(i<idx) dot.classList.add('done');
-    else if(i===idx) dot.classList.add('active');
-  });
-  document.getElementById('stage-label').textContent = STAGES[idx]?.label || '';
-  const h = STAGE_HANDLERS[idx];
-  if (h.init) h.init();
-  animFrame = requestAnimationFrame(gameLoop);
-}
-
-function nextStage() {
-  const h = STAGE_HANDLERS[currentStage];
-  if (h.destroy) h.destroy();
-  if (currentStage + 1 >= STAGES.length) {
-    showDoneScreen();
-  } else {
-    startStage(currentStage + 1);
-  }
-}
-
-/* ─────────────────────────────────────────────────
-   HOLD BUTTON SETUP (cutting stage)
-───────────────────────────────────────────────── */
-function setupHoldBtn() {
-  showHoldBar(true);
-  const wrap = document.getElementById('hold-bar-wrap');
-  wrap.style.display = 'block';
-  // create a large invisible hold overlay on canvas
-  const overlay = document.getElementById('cut-overlay') || (() => {
-    const el = document.createElement('div');
-    el.id='cut-overlay';
-    el.style.cssText='position:fixed;inset:0;z-index:50;cursor:none';
-    document.body.appendChild(el); return el;
-  })();
-
-  const start = ()=>{ cut.holding=true; };
-  const stop  = ()=>{ cut.holding=false; };
-
-  overlay.addEventListener('pointerdown', start, {passive:true});
-  overlay.addEventListener('pointerup',   stop,  {passive:true});
-  overlay.addEventListener('pointerleave',stop,  {passive:true});
-
-  // Remove overlay when cutting done
-  const orig = cut.onDone.bind(cut);
-  cut.onDone = ()=>{ overlay.remove(); orig(); };
-}
-
-/* ─────────────────────────────────────────────────
-   DONE SCREEN
-───────────────────────────────────────────────── */
-function showDoneScreen() {
-  if (animFrame) cancelAnimationFrame(animFrame);
-  document.getElementById('done-screen').style.display='flex';
-  // Draw final doll on done canvas
-  const dc = document.getElementById('done-canvas');
-  const dctx = dc.getContext('2d');
-  const savedCtx = ctx, savedW=W, savedH=H, savedS=S, savedCanvas=canvas;
-  // temporarily swap context to done-canvas
-  Object.assign(window, {ctx:dctx, W:dc.width, H:dc.height, S:dc.width/360});
-  dctx.clearRect(0,0,dc.width,dc.height);
-  drawFabric();
-  drawDoll({stuffed:1,lipstick:true,powder:true,hairLeft:true,hairRight:true});
-  // restore
-  Object.assign(window, {ctx:savedCtx, W:savedW, H:savedH, S:savedS});
-  // confetti
-  launchConfetti();
-}
-
-function launchConfetti() {
-  const emojis=['⭐','🌟','✨','💖','🎊','🎉','🌸','💕'];
-  for(let i=0;i<24;i++){
-    setTimeout(()=>{
-      const el=document.createElement('div');
-      el.className='star-particle';
-      el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
-      el.style.left=Math.random()*100+'vw';
-      el.style.top='-30px';
-      el.style.animationDelay=(Math.random()*.3)+'s';
-      document.body.appendChild(el);
-      setTimeout(()=>el.remove(),1500);
-    }, i*80);
-  }
-}
-
-function restartGame() {
-  document.getElementById('done-screen').style.display='none';
-  startStage(0);
-}
-
-/* ─────────────────────────────────────────────────
-   TAP INDICATOR HELPER
-───────────────────────────────────────────────── */
-function showTapAt(x, y) {
-  const el = document.getElementById('tap-indicator');
-  const rect = canvas.getBoundingClientRect();
-  el.style.display='flex';
-  el.style.left=(rect.left+x)+'px';
-  el.style.top=(rect.top+y)+'px';
-}
-function hideTap(){ document.getElementById('tap-indicator').style.display='none'; }
-
-/* ─────────────────────────────────────────────────
-   UI HELPERS
-───────────────────────────────────────────────── */
-function setInst(t){ document.getElementById('inst-text').textContent=t; }
-function showBtn(show, label=''){
-  const b=document.getElementById('action-btn');
-  b.style.display=show?'inline-block':'none';
-  if(label) b.textContent=label;
-}
-function showHoldBar(show){
-  document.getElementById('hold-bar-wrap').style.display=show?'block':'none';
-}
-function rippleEffect(x,y){
+function s(v){return v*scale;}
+function sx(v){return oX+v*scale;}
+function sy(v){return oY+v*scale;}
+function toV(e){
+  const src=e.changedTouches?e.changedTouches[0]:e;
   const r=canvas.getBoundingClientRect();
-  const el=document.createElement('div');
-  el.className='ripple';
-  el.style.left=(r.left+x)+'px'; el.style.top=(r.top+y)+'px';
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(),600);
+  return{x:(src.clientX-r.left-oX)/scale, y:(src.clientY-r.top-oY)/scale};
 }
 
-/* ─────────────────────────────────────────────────
-   INIT
-───────────────────────────────────────────────── */
-window.addEventListener('resize', ()=>{ setupCanvas(); });
-setupCanvas();
-startStage(0);
+function resize(){
+  const HUD=58, INST=80;
+  const aw=window.innerWidth, ah=window.innerHeight-HUD-INST;
+  scale=Math.min(aw/VW, ah/VH);
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+  oX=(window.innerWidth-VW*scale)/2;
+  oY=HUD+(ah-VH*scale)/2;
+  makeupCanvas.width=canvas.width; makeupCanvas.height=canvas.height;
+}
+
+// ══════════════════════════════════════════════════════════
+//  AUDIO (procedural — no files needed)
+// ══════════════════════════════════════════════════════════
+let _ac=null;
+function ac(){if(!_ac){try{_ac=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _ac;}
+function playTone(freq,dur,vol=0.25){
+  try{const a=ac();if(!a)return;const o=a.createOscillator(),g=a.createGain();
+    o.connect(g);g.connect(a.destination);o.frequency.value=freq;
+    g.gain.setValueAtTime(vol,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);
+    o.start();o.stop(a.currentTime+dur);}catch(e){}
+}
+function sndClick(){playTone(600,.07,.18);}
+function sndStitch(){playTone(900,.06,.15);}
+function sndSnap(){playTone(440,.12,.22);setTimeout(()=>playTone(660,.1,.18),80);}
+function sndSuccess(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,.22,.2),i*100));}
+function vibrate(ms=30){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+
+// ══════════════════════════════════════════════════════════
+//  DRAWING LIBRARY
+// ══════════════════════════════════════════════════════════
+function drawFabric(){
+  ctx.fillStyle='#FFE4EF'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  const sz=s(20);
+  ctx.fillStyle='rgba(255,150,195,0.22)';
+  for(let r=0;r*sz<canvas.height+sz;r++)
+    for(let c=0;c*sz<canvas.width+sz;c++)
+      if((r+c)%2===0) ctx.fillRect(c*sz,r*sz,sz,sz);
+}
+
+function drawBraids(placed=false){
+  [BRAID_L,BRAID_R].forEach(pts=>{
+    ctx.save();ctx.strokeStyle='#7B1515';ctx.lineWidth=s(11);ctx.lineCap='round';ctx.lineJoin='round';
+    ctx.beginPath();ctx.moveTo(sx(pts[0].x),sy(pts[0].y));
+    for(let i=1;i<pts.length;i++) ctx.lineTo(sx(pts[i].x),sy(pts[i].y));
+    ctx.stroke();ctx.restore();
+  });
+  if(placed){
+    // Hair ties
+    const tips=[BRAID_L[BRAID_L.length-1],BRAID_R[BRAID_R.length-1]];
+    const cols=['#FFD93D','#00BBF9'];
+    tips.forEach((p,i)=>{
+      ctx.save();ctx.fillStyle=cols[i];ctx.strokeStyle='#fff';ctx.lineWidth=s(2);
+      ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),s(9),0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`bold ${s(9)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('✿',sx(p.x),sy(p.y));ctx.restore();
+    });
+  }
+}
+
+function drawLegs(inflateR=0){
+  const w=s(22+inflateR*6); ctx.lineCap='round';
+  ctx.save();ctx.strokeStyle='#FFD5B8';ctx.lineWidth=w;
+  ctx.beginPath();ctx.moveTo(sx(D.llx),sy(D.lly1));ctx.lineTo(sx(D.llx),sy(D.lly2));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(D.rlx),sy(D.rly1));ctx.lineTo(sx(D.rlx),sy(D.rly2));ctx.stroke();
+  ctx.restore();
+  // shoes
+  ctx.save();ctx.fillStyle='#9B5DE5';
+  ctx.beginPath();ctx.ellipse(sx(D.lshx),sy(D.lshy),s(22+inflateR*3),s(12),0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(sx(D.rshx),sy(D.rshy),s(22+inflateR*3),s(12),0,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawArms(inflateR=0){
+  ctx.save();ctx.strokeStyle='#FFD5B8';ctx.lineWidth=s(20+inflateR*5);ctx.lineCap='round';
+  ctx.beginPath();ctx.moveTo(sx(D.lax1),sy(D.lay1));ctx.quadraticCurveTo(sx(D.lacx),sy(D.lacy),sx(D.lax2),sy(D.lay2));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(D.rax1),sy(D.ray1));ctx.quadraticCurveTo(sx(D.racx),sy(D.racy),sx(D.rax2),sy(D.ray2));ctx.stroke();
+  // hands
+  ctx.fillStyle='#FFD5B8';
+  ctx.beginPath();ctx.arc(sx(D.lax2),sy(D.lay2),s(13+inflateR*2),0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(sx(D.rax2),sy(D.ray2),s(13+inflateR*2),0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+
+function drawBody(inflateR=0){
+  const inf=inflateR*s(6);
+  ctx.save();ctx.fillStyle='#FF6B9D';
+  ctx.beginPath();ctx.roundRect(sx(D.bx)-inf/2,sy(D.by),s(D.bw)+inf,s(D.bh)+inf/2,s(10));ctx.fill();
+  // stripes
+  ctx.strokeStyle='#9B5DE5';ctx.lineWidth=s(3.5);ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(sx(D.bx),sy(D.by+10));ctx.lineTo(sx(D.bx+D.bw),sy(D.by+10));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(D.bx),sy(D.by+D.bh-10));ctx.lineTo(sx(D.bx+D.bw),sy(D.by+D.bh-10));ctx.stroke();
+  // heart
+  drawHeart(sx(D.bx+D.bw/2),sy(D.by+D.bh/2+5),s(13),'#FFD93D');
+  ctx.restore();
+}
+
+function drawHead(state={}){
+  const{eyesOn=true,hairOn=true,lipstick=false,powder=false,inflateR=0}=state;
+  ctx.save();
+  ctx.fillStyle='#FFD5B8';
+  ctx.beginPath();ctx.arc(sx(D.hx),sy(D.hy),s(D.hr)+inflateR*s(4),0,Math.PI*2);ctx.fill();
+  // cheeks
+  ctx.fillStyle=powder?'rgba(255,120,140,.55)':'rgba(255,179,198,.4)';
+  ctx.beginPath();ctx.ellipse(sx(D.hx-30),sy(D.hy+10),s(16),s(11),0,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(sx(D.hx+30),sy(D.hy+10),s(16),s(11),0,0,Math.PI*2);ctx.fill();
+  if(eyesOn){
+    [[D.hx-22,D.hy-4],[D.hx+22,D.hy-4]].forEach(([ex,ey])=>{
+      ctx.fillStyle='white';ctx.beginPath();ctx.ellipse(sx(ex),sy(ey),s(11),s(12),0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#222';ctx.beginPath();ctx.arc(sx(ex),sy(ey),s(7),0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='white';ctx.beginPath();ctx.arc(sx(ex+3),sy(ey-4),s(2.5),0,Math.PI*2);ctx.fill();
+    });
+    // eyelashes
+    ctx.strokeStyle='#222';ctx.lineWidth=s(1.6);ctx.lineCap='round';
+    [-14,-8,8,14].forEach(ox=>{
+      const side=ox<0?-1:1, bx=D.hx+side*22+ox;
+      ctx.beginPath();ctx.moveTo(sx(bx),sy(D.hy-4-9));ctx.lineTo(sx(bx+ox*0.3),sy(D.hy-4-13));ctx.stroke();
+    });
+  }
+  // mouth
+  ctx.strokeStyle=lipstick?'#B80028':'#E8756B';
+  ctx.lineWidth=lipstick?s(4):s(2.8);ctx.lineCap='round';ctx.setLineDash([]);
+  ctx.beginPath();ctx.moveTo(sx(D.hx-16),sy(D.hy+18));
+  ctx.quadraticCurveTo(sx(D.hx),sy(D.hy+30),sx(D.hx+16),sy(D.hy+18));ctx.stroke();
+  ctx.restore();
+}
+
+function drawDoll(state={}){
+  const{stuffed=1,eyesOn=true,hairOn=true,hairTies=false,lipstick=false,powder=false}=state;
+  const ir=stuffed;
+  drawBraids(hairTies);
+  drawLegs(ir); drawArms(ir); drawBody(ir); drawHead({eyesOn,hairOn,lipstick,powder,inflateR:ir});
+}
+
+function drawDollOutline(dashStyle=true){
+  ctx.save();
+  // Arms & legs outline (thick purple)
+  ctx.strokeStyle='#7B5DE5';ctx.lineWidth=s(22);ctx.lineCap='round';
+  if(dashStyle){ctx.setLineDash([s(4),s(3)]);}else{ctx.setLineDash([]);}
+  ctx.beginPath();ctx.moveTo(sx(D.lax1),sy(D.lay1));ctx.quadraticCurveTo(sx(D.lacx),sy(D.lacy),sx(D.lax2),sy(D.lay2));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(D.rax1),sy(D.ray1));ctx.quadraticCurveTo(sx(D.racx),sy(D.racy),sx(D.rax2),sy(D.ray2));ctx.stroke();
+  ctx.lineWidth=s(23);
+  ctx.beginPath();ctx.moveTo(sx(D.llx),sy(D.lly1));ctx.lineTo(sx(D.llx),sy(D.lly2));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx(D.rlx),sy(D.rly1));ctx.lineTo(sx(D.rlx),sy(D.rly2));ctx.stroke();
+  // head & body outline (dashed pink)
+  ctx.strokeStyle='#FF6B9D';ctx.lineWidth=s(2.5);ctx.setLineDash([s(7),s(5)]);
+  ctx.beginPath();ctx.arc(sx(D.hx),sy(D.hy),s(D.hr),0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.roundRect(sx(D.bx),sy(D.by),s(D.bw),s(D.bh),s(10));ctx.stroke();
+  ctx.restore();
+}
+
+function drawHeart(cx,cy,r,color){
+  ctx.save();ctx.fillStyle=color;
+  ctx.beginPath();ctx.moveTo(cx,cy+r*.35);
+  ctx.bezierCurveTo(cx,cy-r*.4,cx-r*1.4,cy-r*.4,cx-r*1.4,cy+r*.3);
+  ctx.bezierCurveTo(cx-r*1.4,cy+r,cx,cy+r*1.65,cx,cy+r*2);
+  ctx.bezierCurveTo(cx,cy+r*1.65,cx+r*1.4,cy+r,cx+r*1.4,cy+r*.3);
+  ctx.bezierCurveTo(cx+r*1.4,cy-r*.4,cx,cy-r*.4,cx,cy+r*.35);
+  ctx.closePath();ctx.fill();ctx.restore();
+}
+
+function drawScissors(vx,vy,open=false){
+  ctx.save();ctx.translate(sx(vx),sy(vy));
+  const a=open?.32:.1;
+  ctx.strokeStyle='#888';ctx.lineWidth=s(3);ctx.lineCap='round';
+  ctx.save();ctx.rotate(-a);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(s(32),s(-4));ctx.stroke();ctx.restore();
+  ctx.save();ctx.rotate(a);ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(s(32),s(4));ctx.stroke();ctx.restore();
+  ctx.fillStyle='#555';ctx.beginPath();ctx.arc(0,0,s(4.5),0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#FF6B9D';ctx.lineWidth=s(3.5);
+  ctx.beginPath();ctx.arc(-s(9),s(-11),s(9),-.6,Math.PI+.6);ctx.stroke();
+  ctx.beginPath();ctx.arc(-s(9),s(11),s(9),Math.PI-.6,.5*Math.PI*2,true);ctx.stroke();
+  ctx.restore();
+}
+
+function drawCottonBall(vx,vy,r){
+  ctx.save();
+  [{x:0,y:0,r:1},{x:.5,y:-.4,r:.7},{x:-.5,y:-.4,r:.7},{x:.6,y:.3,r:.65},{x:-.6,y:.3,r:.65}].forEach(o=>{
+    ctx.fillStyle='#f0f8ff';ctx.beginPath();ctx.arc(sx(vx)+o.x*s(r),sy(vy)+o.y*s(r),s(r)*o.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#ccd';ctx.lineWidth=1;ctx.beginPath();ctx.arc(sx(vx)+o.x*s(r),sy(vy)+o.y*s(r),s(r)*o.r,0,Math.PI*2);ctx.stroke();
+  });
+  ctx.restore();
+}
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 0 — CUTTING
+// ══════════════════════════════════════════════════════════
+const CUT={
+  idx:0, scx:CUT_PATH[0].x, scy:CUT_PATH[0].y,
+  isDown:false, open:false, openTimer:0,
+  init(){
+    this.idx=0;this.scx=CUT_PATH[0].x;this.scy=CUT_PATH[0].y;
+    this.isDown=false;
+    setInst('حرّك إصبعك على الخط لتقص العروسة ✂️');
+    showProg(true); setProg(0);
+  },
+  onDown(v){this.isDown=true;this.update(v);},
+  onMove(v){if(this.isDown)this.update(v);},
+  onUp(){this.isDown=false;},
+  update(v){
+    // Find best forward point within reach
+    let best=this.idx, bestD=Infinity;
+    const ahead=Math.min(this.idx+6, CUT_PATH.length-1);
+    for(let i=this.idx;i<=ahead;i++){
+      const d=Math.hypot(v.x-CUT_PATH[i].x, v.y-CUT_PATH[i].y);
+      if(d<bestD){bestD=d;best=i;}
+    }
+    if(bestD<45){
+      if(best>this.idx){sndClick();vibrate(15);}
+      this.idx=Math.max(this.idx,best);
+      this.scx=CUT_PATH[this.idx].x;this.scy=CUT_PATH[this.idx].y;
+      const prog=this.idx/(CUT_PATH.length-2);
+      setProg(Math.round(prog*100));
+      if(prog>=.98) setTimeout(()=>{showProg(false);G.next();sndSuccess();},300);
+    }
+    this.open=bestD<35;
+  },
+  render(){
+    drawFabric(); drawDollOutline(true);
+    // cut line so far
+    if(this.idx>0){
+      ctx.save();ctx.setLineDash([]);ctx.strokeStyle='#FF6B9D';ctx.lineWidth=s(3);ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(sx(CUT_PATH[0].x),sy(CUT_PATH[0].y));
+      for(let i=1;i<=this.idx;i++) ctx.lineTo(sx(CUT_PATH[i].x),sy(CUT_PATH[i].y));
+      ctx.stroke();ctx.restore();
+    }
+    drawScissors(this.scx,this.scy,this.open);
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 1 — FACE ASSEMBLY (Drag & Drop)
+// ══════════════════════════════════════════════════════════
+const FACE_STAGE={
+  items:null, dragging:null,
+  SNAP:32,
+  init(){
+    this.items=[
+      {id:'eyeL',x:55, y:280,w:40,h:40,placed:false,target:{x:D.hx-22,y:D.hy-4},emoji:'👁',label:'العين اليسار'},
+      {id:'eyeR',x:55, y:340,w:40,h:40,placed:false,target:{x:D.hx+22,y:D.hy-4},emoji:'👁',label:'العين اليمين'},
+      {id:'hair',x:300,y:295,w:60,h:44,placed:false,target:{x:D.hx,y:D.hy-58},emoji:'💇',label:'الشعر'},
+    ];
+    this.dragging=null;
+    setInst('اسحب العناصر وضعها على وجه العروسة 😊');showProg(false);
+  },
+  onDown(v){
+    for(let it of this.items){
+      if(it.placed)continue;
+      if(Math.abs(v.x-it.x)<it.w/2+8&&Math.abs(v.y-it.y)<it.h/2+8){
+        this.dragging={it,dx:v.x-it.x,dy:v.y-it.y};sndClick();return;
+      }
+    }
+  },
+  onMove(v){
+    if(!this.dragging)return;
+    this.dragging.it.x=v.x-this.dragging.dx;
+    this.dragging.it.y=v.y-this.dragging.dy;
+  },
+  onUp(v){
+    if(!this.dragging)return;
+    const it=this.dragging.it;
+    const d=Math.hypot(it.x-it.target.x,it.y-it.target.y);
+    if(d<this.SNAP){
+      it.x=it.target.x;it.y=it.target.y;it.placed=true;
+      sndSnap();vibrate(25);
+    }
+    this.dragging=null;
+    if(this.items.every(i=>i.placed)) setTimeout(()=>{G.next();sndSuccess();},400);
+  },
+  render(){
+    drawFabric();
+    // Doll without face features
+    drawBraids(false);drawLegs(0);drawArms(0);drawBody(0);
+    // blank head
+    ctx.save();ctx.fillStyle='#FFD5B8';ctx.beginPath();ctx.arc(sx(D.hx),sy(D.hy),s(D.hr),0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#E8A87C';ctx.lineWidth=s(2);ctx.beginPath();ctx.arc(sx(D.hx),sy(D.hy),s(D.hr),0,Math.PI*2);ctx.stroke();
+    ctx.restore();
+    // snap zones (ghost indicators)
+    this.items.filter(it=>!it.placed).forEach(it=>{
+      ctx.save();ctx.strokeStyle='rgba(255,107,157,.4)';ctx.lineWidth=s(2);ctx.setLineDash([s(5),s(4)]);
+      ctx.beginPath();ctx.arc(sx(it.target.x),sy(it.target.y),s(this.SNAP*.8),0,Math.PI*2);ctx.stroke();ctx.restore();
+    });
+    // placed items rendered
+    const eL=this.items.find(i=>i.id==='eyeL'), eR=this.items.find(i=>i.id==='eyeR');
+    if(eL.placed&&eR.placed){
+      [[eL.x,eL.y],[eR.x,eR.y]].forEach(([ex,ey])=>{
+        ctx.fillStyle='white';ctx.beginPath();ctx.ellipse(sx(ex),sy(ey),s(11),s(12),0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#222';ctx.beginPath();ctx.arc(sx(ex),sy(ey),s(7),0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='white';ctx.beginPath();ctx.arc(sx(ex+3),sy(ey-4),s(2.5),0,Math.PI*2);ctx.fill();
+      });
+    }
+    if(this.items.find(i=>i.id==='hair').placed){
+      // Draw hair on head
+      ctx.save();ctx.fillStyle='#7B1515';
+      ctx.beginPath();ctx.arc(sx(D.hx),sy(D.hy-50),s(66),Math.PI,Math.PI*2);ctx.fill();
+      ctx.restore();
+    }
+    // draggable items NOT placed
+    this.items.filter(it=>!it.placed).forEach(it=>{
+      ctx.save();
+      // glow if dragging
+      if(this.dragging&&this.dragging.it===it){ctx.shadowColor='#FFD93D';ctx.shadowBlur=s(18);}
+      ctx.fillStyle='rgba(255,107,157,.22)';ctx.strokeStyle='#FF6B9D';ctx.lineWidth=s(2.5);
+      ctx.beginPath();ctx.roundRect(sx(it.x)-s(it.w/2),sy(it.y)-s(it.h/2),s(it.w),s(it.h),s(12));
+      ctx.fill();ctx.stroke();
+      ctx.font=`${s(24)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(it.emoji,sx(it.x),sy(it.y));
+      ctx.fillStyle='#fff';ctx.font=`bold ${s(9)}px Tajawal`;ctx.fillText(it.label,sx(it.x),sy(it.y+it.h/2+8));
+      ctx.restore();
+    });
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 2 — SEWING
+// ══════════════════════════════════════════════════════════
+const SEW={
+  sections:null, secIdx:0, dotIdx:0, thread:[],
+  pulse:0,
+  init(){
+    this.sections=buildSewSections();
+    this.secIdx=0;this.dotIdx=0;this.thread=[];this.pulse=0;
+    this.updateInst();showProg(true);setProg(0);
+  },
+  updateInst(){
+    const sec=this.sections[this.secIdx];
+    const total=this.sections.reduce((a,s)=>a+s.pts.length,0);
+    const done=this.sections.slice(0,this.secIdx).reduce((a,s)=>a+s.pts.length,0)+this.dotIdx;
+    setProg(Math.round(done/total*100));
+    setInst(`اضغط على النقطة اللامعة — ${sec.name} (${this.dotIdx+1}/${sec.pts.length})`);
+  },
+  onDown(v){
+    const sec=this.sections[this.secIdx];
+    const target=sec.pts[this.dotIdx];
+    const d=Math.hypot(v.x-target.x,v.y-target.y);
+    if(d<28){
+      // Stitch!
+      this.thread.push({...target});
+      sndStitch();vibrate(20);
+      this.dotIdx++;
+      if(this.dotIdx>=sec.pts.length){
+        this.dotIdx=0;this.secIdx++;
+        this.thread=[];
+        if(this.secIdx>=this.sections.length){
+          showProg(false);setTimeout(()=>{G.next();sndSuccess();},400);return;
+        }
+      }
+      this.updateInst();
+    }
+  },
+  onMove(){},onUp(){},
+  render(now){
+    this.pulse=(Math.sin(now/250)+1)/2;
+    drawFabric();drawDoll({stuffed:0,eyesOn:true});
+    const sec=this.sections[this.secIdx];
+    // Draw all stitched dots + thread for current section
+    if(this.thread.length>1){
+      ctx.save();ctx.strokeStyle='#00CC66';ctx.lineWidth=s(2);ctx.lineCap='round';
+      ctx.setLineDash([s(5),s(4)]);
+      ctx.beginPath();ctx.moveTo(sx(this.thread[0].x),sy(this.thread[0].y));
+      for(let i=1;i<this.thread.length;i++) ctx.lineTo(sx(this.thread[i].x),sy(this.thread[i].y));
+      ctx.stroke();ctx.restore();
+    }
+    // Draw all section dots
+    sec.pts.forEach((p,i)=>{
+      const done=i<this.dotIdx;
+      const active=i===this.dotIdx;
+      ctx.save();
+      if(active){ctx.shadowColor='#FFD93D';ctx.shadowBlur=s(10+this.pulse*12);}
+      ctx.fillStyle=done?'#00CC66':active?`rgba(255,217,61,${.7+this.pulse*.3})`:'rgba(255,255,255,.5)';
+      ctx.strokeStyle=done?'#009944':active?'#FFD93D':'rgba(255,255,255,.6)';
+      ctx.lineWidth=s(2);
+      ctx.beginPath();ctx.arc(sx(p.x),sy(p.y),s(active?8:5),0,Math.PI*2);
+      ctx.fill();ctx.stroke();ctx.restore();
+    });
+    // Section label
+    ctx.save();ctx.fillStyle='rgba(255,255,255,.8)';ctx.font=`bold ${s(13)}px Tajawal`;
+    ctx.textAlign='center';ctx.fillText(`🧵 ${sec.name}`,sx(200),sy(640));ctx.restore();
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 3 — STUFFING (Drag 10 fiber balls)
+// ══════════════════════════════════════════════════════════
+const STUFF={
+  balls:null, stuffed:0, dragging:null,
+  init(){
+    this.stuffed=0;this.dragging=null;
+    this.balls=Array.from({length:10},(_,i)=>({
+      x:40+i*(32), y:600, r:14, placed:false,
+    }));
+    setInst('اسحب كرات الفيبر وضعها داخل العروسة ☁️');showProg(true);setProg(0);
+  },
+  bodyHit(v){
+    return v.x>D.bx&&v.x<D.bx+D.bw&&v.y>D.by&&v.y<D.by+D.bh;
+  },
+  onDown(v){
+    for(let b of this.balls){
+      if(b.placed)continue;
+      if(Math.hypot(v.x-b.x,v.y-b.y)<b.r+10){
+        this.dragging={b,dx:v.x-b.x,dy:v.y-b.y};sndClick();return;
+      }
+    }
+  },
+  onMove(v){if(this.dragging){this.dragging.b.x=v.x-this.dragging.dx;this.dragging.b.y=v.y-this.dragging.dy;}},
+  onUp(v){
+    if(!this.dragging)return;
+    const b=this.dragging.b;
+    if(this.bodyHit(b)){
+      b.placed=true;this.stuffed++;
+      setProg(Math.round(this.stuffed/10*100));
+      sndSnap();vibrate(25);
+      if(this.stuffed>=10) setTimeout(()=>{showProg(false);G.next();sndSuccess();},400);
+    }
+    this.dragging=null;
+  },
+  render(){
+    drawFabric();
+    drawDoll({stuffed:this.stuffed/10,eyesOn:true});
+    // Balls not placed
+    this.balls.filter(b=>!b.placed).forEach(b=>{
+      if(this.dragging&&this.dragging.b===b){
+        ctx.save();ctx.shadowColor='#aee';ctx.shadowBlur=s(14);
+        drawCottonBall(b.x,b.y,b.r+2);ctx.restore();
+      }else drawCottonBall(b.x,b.y,b.r);
+    });
+    // progress label
+    ctx.save();ctx.fillStyle='rgba(255,255,255,.7)';ctx.font=`bold ${s(12)}px Tajawal`;
+    ctx.textAlign='center';ctx.fillText(`الحشو: ${this.stuffed}/10`,sx(200),sy(645));ctx.restore();
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 4 — MAKEUP
+// ══════════════════════════════════════════════════════════
+const MAKEUP={
+  tool:null, // 'lip' | 'pow'
+  lipDone:false, powDone:false,
+  lipProg:0, powProg:0,
+  isDrawing:false,
+  LIP_ZONE:{x:200,y:138,r:36},
+  POW_L:{x:D.hx-30,y:D.hy+10,r:28},
+  POW_R:{x:D.hx+30,y:D.hy+10,r:28},
+  TOOLS:{
+    lip:{vx:80,vy:570,w:50,h:70,label:'روج'},
+    pow:{vx:320,vy:565,w:50,h:65,label:'بودرة'},
+  },
+  init(){
+    this.tool=null;this.lipDone=false;this.powDone=false;
+    this.lipProg=0;this.powProg=0;this.isDrawing=false;
+    mctx.clearRect(0,0,makeupCanvas.width,makeupCanvas.height);
+    setInst('اختار أداة المكياج واضغط على الوجه 💄');showProg(true);setProg(0);
+  },
+  onDown(v){
+    // Check tool selection
+    for(const[k,t] of Object.entries(this.TOOLS)){
+      if(Math.abs(v.x-t.vx)<t.w/2+10&&Math.abs(v.y-t.vy)<t.h/2+10){
+        this.tool=k;sndClick();
+        setInst(k==='lip'?'حرّك الروج على الشفايف 💋':'دوّر السفنجة على الخدود ✨');
+        return;
+      }
+    }
+    if(this.tool)this.isDrawing=true;
+    this.applyMakeup(v);
+  },
+  onMove(v){if(this.isDrawing)this.applyMakeup(v);},
+  onUp(){this.isDrawing=false;},
+  applyMakeup(v){
+    if(!this.tool)return;
+    if(this.tool==='lip'){
+      const d=Math.hypot(v.x-this.LIP_ZONE.x,v.y-this.LIP_ZONE.y);
+      if(d<this.LIP_ZONE.r){
+        mctx.save();mctx.fillStyle='rgba(180,0,40,.22)';
+        mctx.beginPath();mctx.arc(sx(v.x),sy(v.y),s(7),0,Math.PI*2);mctx.fill();mctx.restore();
+        this.lipProg=Math.min(1,this.lipProg+.07);
+        if(this.lipProg>=1&&!this.lipDone){this.lipDone=true;sndSnap();}
+      }
+    }else{
+      const dL=Math.hypot(v.x-this.POW_L.x,v.y-this.POW_L.y);
+      const dR=Math.hypot(v.x-this.POW_R.x,v.y-this.POW_R.y);
+      if(dL<this.POW_L.r||dR<this.POW_R.r){
+        mctx.save();mctx.shadowColor='rgba(255,100,130,.6)';mctx.shadowBlur=s(20);
+        mctx.fillStyle='rgba(255,100,130,.1)';
+        mctx.beginPath();mctx.arc(sx(v.x),sy(v.y),s(20),0,Math.PI*2);mctx.fill();mctx.restore();
+        this.powProg=Math.min(1,this.powProg+.05);
+        if(this.powProg>=1&&!this.powDone){this.powDone=true;sndSnap();}
+      }
+    }
+    const prog=Math.round((this.lipProg+this.powProg)/2*100);
+    setProg(prog);
+    if(this.lipDone&&this.powDone) setTimeout(()=>{showProg(false);G.next();sndSuccess();},400);
+  },
+  drawTool(k){
+    const t=this.TOOLS[k];
+    const active=this.tool===k;
+    ctx.save();
+    if(active){ctx.shadowColor='#FFD93D';ctx.shadowBlur=s(16);}
+    ctx.fillStyle=active?'rgba(255,217,61,.3)':'rgba(255,255,255,.15)';
+    ctx.strokeStyle=active?'#FFD93D':'rgba(255,255,255,.4)';ctx.lineWidth=s(2.5);
+    ctx.beginPath();ctx.roundRect(sx(t.vx)-s(t.w/2),sy(t.vy)-s(t.h/2),s(t.w),s(t.h),s(12));
+    ctx.fill();ctx.stroke();
+    ctx.font=`${s(28)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(k==='lip'?'💄':'🧽',sx(t.vx),sy(t.vy-6));
+    ctx.fillStyle='#fff';ctx.font=`bold ${s(10)}px Tajawal`;ctx.fillText(t.label,sx(t.vx),sy(t.vy+t.h/2-6));
+    ctx.restore();
+  },
+  render(){
+    drawFabric();
+    drawDoll({stuffed:1,eyesOn:true,lipstick:this.lipDone,powder:this.powDone});
+    // makeup overlay
+    ctx.drawImage(makeupCanvas,0,0);
+    this.drawTool('lip');this.drawTool('pow');
+    // progress labels
+    ctx.save();ctx.fillStyle='rgba(255,255,255,.65)';ctx.font=`bold ${s(11)}px Tajawal`;ctx.textAlign='center';
+    if(this.lipDone) ctx.fillText('✅ الروج جاهز',sx(80),sy(640));
+    if(this.powDone) ctx.fillText('✅ البودرة جاهزة',sx(320),sy(640));
+    ctx.restore();
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 5 — HAIR TIES
+// ══════════════════════════════════════════════════════════
+const HAIR={
+  ties:null, selected:null,
+  BRAID_TIPS:[
+    {x:BRAID_L[BRAID_L.length-1].x, y:BRAID_L[BRAID_L.length-1].y, side:'left',  placed:false},
+    {x:BRAID_R[BRAID_R.length-1].x, y:BRAID_R[BRAID_R.length-1].y, side:'right', placed:false},
+  ],
+  SNAP_R:38,
+  init(){
+    this.selected=null;
+    this.ties=[
+      {id:0,x:100,y:590,color:'#FFD93D',placed:false,label:'توكة يسار'},
+      {id:1,x:300,y:590,color:'#00BBF9',placed:false,label:'توكة يمين'},
+    ];
+    this.BRAID_TIPS.forEach(t=>t.placed=false);
+    setInst('اضغط على التوكة ثم اضغط على نهاية الضفيرة 🎀');showProg(false);
+  },
+  onDown(v){
+    // Check if tapping a tie
+    for(const t of this.ties){
+      if(t.placed)continue;
+      if(Math.hypot(v.x-t.x,v.y-t.y)<30){
+        this.selected=t;sndClick();
+        setInst(`اضغط على الضفيرة ${t.label.includes('يسار')?'اليسار':'اليمين'} لتركيب التوكة`);
+        return;
+      }
+    }
+    // Check if tapping a braid tip (while a tie is selected)
+    if(this.selected){
+      const tip=this.BRAID_TIPS[this.selected.id];
+      if(!tip.placed&&Math.hypot(v.x-tip.x,v.y-tip.y)<this.SNAP_R){
+        this.selected.placed=true;tip.placed=true;
+        sndSnap();vibrate(30);
+        this.selected=null;
+        if(this.ties.every(t=>t.placed)) setTimeout(()=>{G.next();sndSuccess();},500);
+        else setInst('الآن ركّب التوكة الثانية 🎀');
+      }
+    }
+  },
+  onMove(){},onUp(){},
+  render(now){
+    const pulse=(Math.sin(now/300)+1)/2;
+    drawFabric();drawDoll({stuffed:1,eyesOn:true,lipstick:true,powder:true,hairTies:false});
+    // Braid tips highlight
+    this.BRAID_TIPS.forEach((tip,i)=>{
+      if(tip.placed)return;
+      const active=this.selected&&this.selected.id===i;
+      ctx.save();
+      if(active){ctx.shadowColor=this.ties[i].color;ctx.shadowBlur=s(18+pulse*12);}
+      ctx.strokeStyle=active?this.ties[i].color:'rgba(255,255,255,.4)';
+      ctx.lineWidth=s(2.5);ctx.setLineDash([s(5),s(4)]);
+      ctx.beginPath();ctx.arc(sx(tip.x),sy(tip.y),s(this.SNAP_R*.8),0,Math.PI*2);ctx.stroke();
+      ctx.restore();
+    });
+    // Placed ties
+    this.BRAID_TIPS.forEach((tip,i)=>{
+      if(!tip.placed)return;
+      ctx.save();ctx.fillStyle=this.ties[i].color;ctx.strokeStyle='#fff';ctx.lineWidth=s(2.5);
+      ctx.beginPath();ctx.arc(sx(tip.x),sy(tip.y),s(10),0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`${s(11)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('✿',sx(tip.x),sy(tip.y));ctx.restore();
+    });
+    // Tie buttons
+    this.ties.forEach(t=>{
+      if(t.placed)return;
+      const active=this.selected===t;
+      ctx.save();
+      if(active){ctx.shadowColor=t.color;ctx.shadowBlur=s(20);}
+      ctx.fillStyle=t.color;ctx.strokeStyle=active?'#FFD93D':'rgba(255,255,255,.6)';ctx.lineWidth=s(3);
+      ctx.beginPath();ctx.arc(sx(t.x),sy(t.y),s(22),0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.fillStyle='#fff';ctx.font=`${s(18)}px sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('🎀',sx(t.x),sy(t.y));
+      ctx.font=`bold ${s(9)}px Tajawal`;ctx.fillText(t.label,sx(t.x),sy(t.y+28));
+      ctx.restore();
+    });
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  STAGE 6 — DONE
+// ══════════════════════════════════════════════════════════
+const DONE={
+  init(){
+    showProg(false);
+    document.getElementById('done-scr').style.display='flex';
+    // Draw final doll on done-canvas
+    const dc=document.getElementById('done-c');
+    const dctx=dc.getContext('2d');
+    const sv=scale,sox=oX,soy=oY;
+    scale=dc.width/VW; oX=0; oY=(dc.height-VH*scale)/2;
+    dctx.clearRect(0,0,dc.width,dc.height);
+    dctx.fillStyle='#FFE4EF';dctx.fillRect(0,0,dc.width,dc.height);
+    // use dctx temporarily
+    const _ctx=ctx; Object.defineProperty(window,'ctx',{value:dctx,writable:true,configurable:true});
+    drawDoll({stuffed:1,eyesOn:true,hairTies:true,lipstick:true,powder:true});
+    Object.defineProperty(window,'ctx',{value:_ctx,writable:true,configurable:true});
+    scale=sv;oX=sox;oY=soy;
+    confetti();sndSuccess();
+  },
+  onDown(){},onMove(){},onUp(){},
+  render(){drawFabric();drawDoll({stuffed:1,eyesOn:true,hairTies:true,lipstick:true,powder:true});}
+};
+
+function confetti(){
+  const emojis=['⭐','🌟','✨','💖','🎊','🎉','🌸','💕','🎀'];
+  for(let i=0;i<28;i++) setTimeout(()=>{
+    const el=document.createElement('div');el.className='prt';
+    el.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left=Math.random()*100+'vw';el.style.top='-30px';
+    el.style.animationDelay=(Math.random()*.4)+'s';
+    document.body.appendChild(el);setTimeout(()=>el.remove(),1600);
+  },i*90);
+}
+
+// ══════════════════════════════════════════════════════════
+//  GAME ENGINE
+// ══════════════════════════════════════════════════════════
+const STAGES_CFG=[
+  {id:'cut',   label:'✂️ القص',     h:CUT},
+  {id:'face',  label:'😊 الوجه',    h:FACE_STAGE},
+  {id:'sew',   label:'🧵 الخياطة', h:SEW},
+  {id:'stuff', label:'☁️ الحشو',    h:STUFF},
+  {id:'make',  label:'💄 المكياج',  h:MAKEUP},
+  {id:'hair',  label:'🎀 التوكات', h:HAIR},
+  {id:'done',  label:'🎉 جاهزة!',  h:DONE},
+];
+
+const G={
+  idx:0, raf:null,
+  init(){
+    resize();
+    this.buildDots();
+    this.startStage(0);
+    this.bindInput();
+    window.addEventListener('resize',()=>{resize();});
+  },
+  buildDots(){
+    const c=document.getElementById('dots');c.innerHTML='';
+    STAGES_CFG.slice(0,-1).forEach((_,i)=>{
+      const d=document.createElement('div');d.className='dot'+(i===0?' active':'');
+      d.id='dot'+i;c.appendChild(d);
+    });
+  },
+  updateHUD(){
+    STAGES_CFG.slice(0,-1).forEach((_,i)=>{
+      const d=document.getElementById('dot'+i);
+      if(!d)return;
+      d.className='dot'+(i<this.idx?'done':i===this.idx?'active':'');
+    });
+    const lbl=document.getElementById('stage-lbl');
+    if(lbl) lbl.textContent=STAGES_CFG[Math.min(this.idx,STAGES_CFG.length-1)].label;
+  },
+  startStage(i){
+    if(this.raf)cancelAnimationFrame(this.raf);
+    this.idx=i;
+    this.updateHUD();
+    STAGES_CFG[i].h.init();
+    this.loop();
+  },
+  loop(ts=0){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    STAGES_CFG[this.idx].h.render(ts);
+    this.raf=requestAnimationFrame(t=>this.loop(t));
+  },
+  next(){
+    if(this.idx+1<STAGES_CFG.length) this.startStage(this.idx+1);
+  },
+  restart(){
+    document.getElementById('done-scr').style.display='none';
+    mctx.clearRect(0,0,makeupCanvas.width,makeupCanvas.height);
+    this.startStage(0);
+  },
+  bindInput(){
+    const el=canvas;
+    const down=e=>{e.preventDefault();const h=STAGES_CFG[this.idx].h;if(h.onDown)h.onDown(toV(e));};
+    const move=e=>{e.preventDefault();const h=STAGES_CFG[this.idx].h;if(h.onMove)h.onMove(toV(e));};
+    const up=e=>{const h=STAGES_CFG[this.idx].h;if(h.onUp)h.onUp(toV(e));};
+    el.addEventListener('pointerdown',down,{passive:false});
+    el.addEventListener('pointermove',move,{passive:false});
+    el.addEventListener('pointerup',up,{passive:false});
+    el.addEventListener('pointercancel',up,{passive:false});
+  }
+};
+
+// ══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ══════════════════════════════════════════════════════════
+function setInst(t){const e=document.getElementById('inst-txt');if(e)e.textContent=t;}
+function showProg(v){const e=document.getElementById('prog-wrap');if(e)e.style.display=v?'block':'none';}
+function setProg(p){const e=document.getElementById('prog-fill');if(e)e.style.width=p+'%';}
+
+// ══════════════════════════════════════════════════════════
+//  START
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',()=>G.init());
 </script>
 </body>
 </html>
